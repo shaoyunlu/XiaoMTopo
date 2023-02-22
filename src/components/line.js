@@ -46,7 +46,7 @@ function LineNode(vTopo ,opt){
 	this.snapBaseNode.insertAfter(vTopo.pathStartEl)
 
 	//this.jqNodeEl.css("marker-start" ,"url('#startArrow')")
-	this.jqNodeEl.css("marker-end" ,"url('#endArrow')")
+	//this.jqNodeEl.css("marker-end" ,"url('#endArrow')")
 
 	var throttled
 
@@ -150,7 +150,8 @@ function LineNode(vTopo ,opt){
 													   : (offset_obj.left = offset_obj.left + x_offset)
 		answer_node_pos.top > condition_node_pos.top ? (offset_obj.top = offset_obj.top - y_offset)
 													   : (offset_obj.top = offset_obj.top + y_offset)
-		return offset_obj
+		//return offset_obj
+		return {left : 0,top:0}
 	}
 
 	this.updateStartNodePosition = function (startNode ,offset_obj){

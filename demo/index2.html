@@ -47,15 +47,15 @@
 <script>
 	var vTopo = new VTopo({
 		jqSvgEl : $("#svg"),
-		//mode : "view"
+		mode : "view"
 	})
 
 	$("#circleNode").click(function (){
-		vTopo.createCircleNode({img:"6060.png" ,r:25})
+		vTopo.createCircleNode({img:"6060.png"})
 	})
 
 	$("#linkNode").click(function (){
-		vTopo.createCircleNode({img:"linknode.png" ,isLinkNode:true ,r:10})
+		vTopo.createCircleNode({img:"linknode.jpg" ,isLinkNode:true})
 	})
 
 	$("#save").click(function (){

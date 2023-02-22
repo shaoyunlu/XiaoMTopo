@@ -2,11 +2,12 @@
 	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
 	typeof define === 'function' && define.amd ? define(factory) :
 	(global = global || self, global.VTopo = factory());
-}(this, function () { 'use strict';
+}(this, (function () { 'use strict';
 
 	/** 
 		节点池     节点管理中心
 	*/
+
 	var nodePool = [];
 	function registerNode(node) {
 	  nodePool.push(node);
@@ -29,24 +30,22 @@
 	}
 
 	function BaseNode(vTopo, opt) {
+
 	  /** 节点唯一标识 */
-
 	  this.id;
-	  /** 节点类型       circle,line等*/
 
+	  /** 节点类型       circle,line等*/
 	  this.type;
 	  this.snapBaseNode;
 	  this.snapNode;
 	  this.jqBaseNodeEl;
 	  this.jqNodeEl;
-
 	  this.snapBaseNodeCreate = function (vTopo, __opt) {
 	    this.snapBaseNode = vTopo.snapSvg.paper.g();
 	    vTopo.vTopoBaseNode.add(this.snapBaseNode);
 	    this.id = __opt.id || vTopo.uuid++;
 	    registerNode(this);
 	  };
-
 	  this.baseRemove = function () {
 	    this.snapBaseNode.remove();
 	    this.snapNode.remove();
@@ -59,14 +58,11 @@
 
 	function getElPosition(jqEl) {
 	  var __attr = jqEl.attr("transform");
-
 	  if (!__attr) return {
 	    left: 0,
 	    top: 0
 	  };
-
 	  var __array = __attr.replace(")", "").split(",");
-
 	  return {
 	    left: parseInt(__array[4]),
 	    top: parseInt(__array[5])
@@ -89,35 +85,29 @@
 	function lineIsInNode(jqEl, vTopo) {
 	  var pos = __getLineEndNodePosition(jqEl);
 	  var endNode = null;
-
 	  for (var i = 0; i < vTopo.nodeArray.length; i++) {
 	    var __pos = vTopo.nodeArray[i].getPosRange();
-
 	    if (pos.left > __pos.x_range[0] && pos.left < __pos.x_range[1] && pos.top > __pos.y_range[0] && pos.top < __pos.y_range[1]) {
 	      endNode = vTopo.nodeArray[i];
 	      break;
 	    }
 	  }
-
 	  return endNode;
-	} // 获取坐标在哪个区间
+	}
 
+	// 获取坐标在哪个区间
 	function getSpaceIndexFromLine(dstX, dstY, lineNode) {
 	  dstX = Math.abs(dstX);
 	  dstY = Math.abs(dstY);
-
 	  var __path = lineNode.snapNode.attr("d").split(" ");
-
 	  var range = __path.length / 3 - 1;
 	  var res = -1;
-
 	  for (var i = 0; i < range; i++) {
 	    if ((dstX >= Math.abs(__path[i * 3 + 1]) && dstX <= Math.abs(__path[i * 3 + 4]) || dstX <= Math.abs(__path[i * 3 + 1]) && dstX >= Math.abs(__path[i * 3 + 4])) && (dstY >= Math.abs(__path[i * 3 + 2]) && dstY <= Math.abs(__path[i * 3 + 5]) || dstY <= Math.abs(__path[i * 3 + 2]) && dstY >= Math.abs(__path[i * 3 + 5]))) {
 	      res = i;
 	      break;
 	    }
 	  }
-
 	  return res;
 	}
 	function splitText(textStr, vTopo) {
@@ -126,17 +116,14 @@
 	  var start_pos = 0;
 	  var digit = 1;
 	  var count = 0;
-
 	  for (var i = 0; i < textStr.length; i++) {
 	    if (textStr.charCodeAt(i) > 127 || textStr.charCodeAt(i) == 94) count += 2;else count++;
 	    if (count == 11 || count == 12) res.push(textStr.substr(start_pos, digit)), count = 0, digit = 1, start_pos = i + 1;else digit++;
 	  }
-
 	  var res_str = res.join("");
 	  if (res_str.length != textStr.length) res.push(textStr.substr(res_str.length));
 	  res.forEach(function (tmp) {
 	    var __t = $('<span>' + tmp + '</span>').appendTo(vTopo.jqTextSplit);
-
 	    textArray.push({
 	      text: tmp,
 	      width: __t.width()
@@ -150,14 +137,10 @@
 	function getEventOffSetY(e, vTopo) {
 	  return e.pageY - vTopo.jqWrapperElOffset.top;
 	}
-
 	function __getLineEndNodePosition(jqEl) {
 	  var array_d = jqEl.attr("d").split(" ");
-
 	  var __attr = jqEl.attr("transform");
-
 	  var __array = __attr.replace(")", "").split(",");
-
 	  return {
 	    left: parseInt(__array[4]) + parseInt(array_d[4]),
 	    top: parseInt(__array[5]) + parseInt(array_d[5])
@@ -189,40 +172,28 @@
 	  });
 	  target_el.bind("mousedown", function (e) {
 	    if (e.which != 3) return false;
-
 	    __contentMenuShow(node, vTopo, e, opt, target_el);
-
 	    e.stopPropagation();
 	  });
 	}
 	var nodeContextMenuStr = "<div class=\"vtopo-context-menu\">\n\t\t\t\t\t\t<ul>\n\t\t\t\t\t\t\t<li data-oper=\"drawLine\">\u7ED8\u5236\u8FDE\u7EBF</li>\n\t\t\t\t\t\t\t<li data-oper=\"drawNodeText\">\u6DFB\u52A0\u6587\u5B57</li>\n\t\t\t\t\t\t\t<li data-oper=\"deleteNode\">\u5220\u9664\u5143\u7D20</li>\n\t\t\t\t\t\t</ul>\n\t\t\t\t\t</div>";
 	var lineContextMenuStr = "<div class=\"vtopo-context-menu\">\n\t\t\t\t\t\t<ul>\n\t\t\t\t\t\t\t<li data-oper=\"addTextInLine\" style=\"display:none\">\u6DFB\u52A0\u6587\u5B57</li>\n\t\t\t\t\t\t\t<li data-oper=\"deleteLine\">\u5220\u9664\u8FDE\u7EBF</li>\n\t\t\t\t\t\t</ul>\n\t\t\t\t\t</div>";
 	var inflexNodeContextMenuStr = "<div class=\"vtopo-context-menu\">\n\t\t\t\t\t\t<ul>\n\t\t\t\t\t\t\t<li data-oper=\"deleteInflexNode\">\u5220\u9664\u5143\u7D20</li>\n\t\t\t\t\t\t</ul>\n\t\t\t\t\t</div>";
-
 	function __contentMenuShow(node, vTopo, e, opt, target_el) {
 	  $(".vtopo-context-menu").remove();
 	  var pos = getElPosition(target_el);
-
 	  var __el;
-
 	  if (node.type == "circle") __el = $(nodeContextMenuStr);else if (node.type == "line") __el = $(lineContextMenuStr);else if (node.type == "inflexPoint") __el = $(inflexNodeContextMenuStr);
-
 	  __el.css("left", getEventOffSetX(e, vTopo) + vTopo.jqWrapperElOffset.left + "px");
-
 	  __el.css("top", getEventOffSetY(e, vTopo) + "px");
-
 	  vTopo.jqWrapperEl.append(__el);
-
 	  __el.bind('click', function (e) {
 	    e.preventDefault();
 	    return false;
 	  });
-
 	  __el.find("[data-oper]").click(function (e) {
 	    e.stopPropagation();
-
 	    var __oper = $(this).attr("data-oper");
-
 	    if (__oper == "deleteNode") node.remove();else if (__oper == "drawNodeText") dialogInput({
 	      pos: {
 	        left: getEventOffSetX(e, vTopo) + "px",
@@ -270,13 +241,11 @@
 	  });
 	  this.snapNode.drag();
 	  parentNode.snapBaseNode.add(this.snapNode);
-
 	  var mousemove_throttle = _.throttle(function (e) {
 	    e.stopPropagation();
 	    parentNode.chageInflexPoint(self);
 	    vTopo.setGuideLinePos(getElPosition(self.jqNodeEl));
 	  }, 50);
-
 	  this.jqNodeEl.bind('mousedown', function (e) {
 	    e.stopPropagation();
 	    vTopo.jqWrapperEl.bind('mousemove.drag', mousemove_throttle);
@@ -286,25 +255,19 @@
 	      vTopo.resetGuideLinePos();
 	    });
 	  });
-
 	  this.getCenterPosition = function () {
 	    var offset = this.r;
-
 	    var __attr = this.jqNodeEl.attr("transform");
-
 	    if (!__attr) return {
 	      left: 0 + offset,
 	      top: 0 + offset
 	    };
-
 	    var __array = __attr.replace(")", "").split(",");
-
 	    return {
 	      left: parseInt(__array[4]) + offset,
 	      top: parseInt(__array[5]) + offset
 	    };
 	  };
-
 	  this.remove = function () {
 	    var ori_array = parentNode.jqNodeEl.attr("d").split(" ");
 	    var res_array = ori_array.slice(0, (this.range + 1) * 3).concat(ori_array.slice((this.range + 1) * 3 + 3));
@@ -315,15 +278,16 @@
 	    parentNode.removeInflexPoint(this.range);
 	    parentNode = null;
 	  };
-
 	  this.exception_remove = function () {
 	    this.jqNodeEl.remove();
 	    vTopo.jqWrapperEl.unbind('mousemove.drag');
 	    vTopo.jqWrapperEl.unbind('mouseup.drag');
 	    parentNode = null;
 	  };
-
 	  rightClickInit(this, vTopo);
+	  if (vTopo.mode == 'view') {
+	    this.jqNodeEl.css('opacity', 0);
+	  }
 	}
 
 	/** */
@@ -355,11 +319,12 @@
 	  this.snapBaseNode.attr('id', 'g_' + this.id);
 	  this.jqBaseNodeEl = $("#" + 'g_' + this.id);
 	  this.jqNodeEl = $("#" + 'l_' + this.id);
-	  this.snapBaseNode.insertAfter(vTopo.pathStartEl); //this.jqNodeEl.css("marker-start" ,"url('#startArrow')")
+	  this.snapBaseNode.insertAfter(vTopo.pathStartEl);
 
-	  this.jqNodeEl.css("marker-end", "url('#endArrow')");
+	  //this.jqNodeEl.css("marker-start" ,"url('#startArrow')")
+	  //this.jqNodeEl.css("marker-end" ,"url('#endArrow')")
+
 	  var throttled;
-
 	  this.__lineMousemoveEventInit = function () {
 	    var array_d = self.jqNodeEl.attr("d").split(" ");
 	    var array_transform = self.jqNodeEl.attr("transform").replace(")", "").split(",");
@@ -374,7 +339,6 @@
 	        vTopo.jqWrapperEl.unbind('mousemove');
 	        vTopo.jqWrapperEl.unbind('click.drag');
 	        var endNode;
-
 	        if (!(endNode = lineIsInNode(self.jqNodeEl, vTopo))) {
 	          self.remove();
 	        } else {
@@ -382,16 +346,13 @@
 	          self.startNode.relationLinkNodeIdArray.push(self.id);
 	          self.endNode.relationLinkNodeIdArray.push(self.id);
 	          self.sideToSideLink();
-
-	          self.__lineMouseoverEventInit(); // 连线之后，进行右键菜单初始化
-
-
+	          self.__lineMouseoverEventInit();
+	          // 连线之后，进行右键菜单初始化
 	          rightClickInit(self, vTopo);
 	        }
 	      });
 	    }, 200);
 	  };
-
 	  this.__lineMouseoverEventInit = function () {
 	    if (vTopo.mode == "view") return false;
 	    this.snapNode.mouseover(function () {
@@ -406,16 +367,11 @@
 	            top: getEventOffSetY(e, vTopo)
 	          }
 	        });
-
 	        self.inflexPointArray.push(__inflexNode);
-
 	        var __range = self.insertInflexPoint(__inflexNode);
-
 	        __inflexNode.range = __range;
-
 	        if (__range < 0) {
 	          __inflexNode.exception_remove();
-
 	          self.inflexPointArray = _.filter(self.inflexPointArray, function (tmp) {
 	            return tmp.range != -1;
 	          });
@@ -427,70 +383,66 @@
 	      self.snapNode.unclick();
 	    });
 	  };
-
 	  this.sideToSideLink = function () {
 	    var _this = this;
-
 	    // 找到range最大的折点
 	    var __startNode;
-
 	    if (this.inflexPointIndex.length == 0) __startNode = self.startNode;else __startNode = _.find(this.inflexPointArray, function (tmp) {
 	      return tmp.range == _.max(_this.inflexPointIndex);
 	    });
-	    self.updateEndNodePosition(self.endNode.getCenterPosition(), self.adjustNodePosition(__startNode, self.endNode)); // 找到range为0的折点
-
+	    self.updateEndNodePosition(self.endNode.getCenterPosition(), self.adjustNodePosition(__startNode, self.endNode));
+	    // 找到range为0的折点
 	    var __endNode;
-
 	    if (this.inflexPointIndex.length == 0) __endNode = self.endNode;else __endNode = _.find(this.inflexPointArray, function (tmp) {
 	      return tmp.range == 0;
 	    });
 	    self.updateStartNodePosition(self.startNode, self.adjustNodePosition(__endNode, self.startNode));
 	  };
-
 	  this.adjustNodePosition = function (condition_node, answer_node) {
 	    var offset_obj = {
 	      left: 0,
 	      top: 0
 	    };
 	    var condition_node_pos = condition_node.getCenterPosition();
-	    var answer_node_pos = answer_node.getCenterPosition(); // 两条横边长度
+	    var answer_node_pos = answer_node.getCenterPosition();
 
+	    // 两条横边长度
 	    var x_side = Math.abs(answer_node_pos.left - condition_node_pos.left);
-	    var y_side = Math.abs(answer_node_pos.top - condition_node_pos.top); // 斜边长度
+	    var y_side = Math.abs(answer_node_pos.top - condition_node_pos.top);
+	    // 斜边长度
+	    var hypo_side = Math.sqrt(x_side * x_side + y_side * y_side);
 
-	    var hypo_side = Math.sqrt(x_side * x_side + y_side * y_side); // 计算偏移量
-
+	    // 计算偏移量
 	    var x_offset = Math.round(answer_node.r / hypo_side * x_side);
 	    var y_offset = Math.round(answer_node.r / hypo_side * y_side);
 	    answer_node_pos.left > condition_node_pos.left ? offset_obj.left = offset_obj.left - x_offset : offset_obj.left = offset_obj.left + x_offset;
 	    answer_node_pos.top > condition_node_pos.top ? offset_obj.top = offset_obj.top - y_offset : offset_obj.top = offset_obj.top + y_offset;
-	    return offset_obj;
+	    //return offset_obj
+	    return {
+	      left: 0,
+	      top: 0
+	    };
 	  };
-
 	  this.updateStartNodePosition = function (startNode, offset_obj) {
 	    var array_d = self.jqNodeEl.attr("d").split(" ");
 	    var array_d_length = array_d.length;
 	    var array_transform = this.jqNodeEl.attr("transform").replace(")", "").split(",");
 	    var node_transform = startNode.jqBaseNodeEl.attr("transform").replace(")", "").split(",");
-
 	    var __x = parseInt(node_transform[4]) + startNode.r - parseInt(array_transform[4]);
-
 	    var __y = parseInt(node_transform[5]) + startNode.r - parseInt(array_transform[5]);
-
 	    this.jqNodeEl.attr("d", "M " + (__x + offset_obj.left) + " " + (__y + offset_obj.top) + " " + getLinePathWithOutStart(this.jqNodeEl));
 	  };
-
 	  this.updateEndNodePosition = function (end_node_pos, offset_obj) {
 	    var array_transform = this.jqNodeEl.attr("transform").replace(")", "").split(",");
 	    this.jqNodeEl.attr("d", getLinePathWithoutEnd(this.jqNodeEl) + " L " + (end_node_pos.left + offset_obj.left - parseInt(array_transform[4])) + " " + (end_node_pos.top + offset_obj.top - parseInt(array_transform[5])));
-	  }; // 节点删除
+	  };
 
-
+	  // 节点删除
 	  this.remove = function () {
 	    if (this.inflexPointArray) this.inflexPointArray.forEach(function (tmp) {
 	      tmp.remove();
-	    }); // startNode 与 endNode的  link属性需要更新
-
+	    });
+	    // startNode 与 endNode的  link属性需要更新
 	    this.startNode && this.startNode.updataRelationLinkNode(this.id);
 	    this.endNode && this.endNode.updataRelationLinkNode(this.id);
 	    removeNode(this.id);
@@ -502,90 +454,68 @@
 	    this.inflexPointArray = null;
 	    this.inflexPointIndex = null;
 	    this.baseRemove();
-	  }; // 添加折点
+	  };
 
-
+	  // 添加折点
 	  this.insertInflexPoint = function (__inflexNode) {
 	    var x;
 	    var y;
-
 	    var __str;
-
 	    var __path = this.snapNode.attr("d").split(" ");
-
 	    var __inflexNode_pos = getElPosition(__inflexNode.jqNodeEl);
-
 	    var __jqNodeEl_pos = getElPosition(this.jqNodeEl);
-
 	    x = __inflexNode_pos.left - __jqNodeEl_pos.left;
 	    y = __inflexNode_pos.top - __jqNodeEl_pos.top;
 	    __str = "M " + __path[1] + " " + __path[2];
-
 	    var __range;
-
 	    if (__inflexNode.range || __inflexNode.range == 0) __range = __inflexNode.range;else __range = getSpaceIndexFromLine(x, y, this);
 	    var mid_num = __path.length / 3 - 1;
-
 	    for (var i = 0; i < mid_num; i++) {
 	      if (i == __range) __str = __str + " L " + x + " " + y;
-
 	      var _t = (i + 1) * 3;
-
 	      __str = __str + " L " + __path[_t + 1] + " " + __path[_t + 2];
 	    }
-
 	    this.snapNode.attr("d", __str);
 	    this.updateInflexIndex();
 	    return __range;
-	  }; // 移动折点
+	  };
 
-
+	  // 移动折点
 	  this.chageInflexPoint = function (__inflexNode) {
 	    var x;
 	    var y;
-
 	    var __str;
-
 	    var __path = this.snapNode.attr("d").split(" ");
-
 	    var __inflexNode_pos = getElPosition(__inflexNode.jqNodeEl);
-
 	    var __jqNodeEl_pos = getElPosition(this.jqNodeEl);
-
 	    x = __inflexNode_pos.left - __jqNodeEl_pos.left;
 	    y = __inflexNode_pos.top - __jqNodeEl_pos.top;
 	    __str = "M " + __path[1] + " " + __path[2];
 	    var mid_num = __path.length / 3 - 1;
-
 	    for (var i = 0; i < mid_num; i++) {
 	      if (i == __inflexNode.range) __str = __str + " L " + x + " " + y;else __str = __str + " L " + __path[(i + 1) * 3 + 1] + " " + __path[(i + 1) * 3 + 2];
 	    }
-
 	    this.snapNode.attr("d", __str);
 	    this.sideToSideLink();
-	  }; // 删除折点
+	  };
 
-
+	  // 删除折点
 	  this.removeInflexPoint = function (__range) {
 	    this.inflexPointArray = _.filter(this.inflexPointArray, function (tmp) {
 	      return tmp.range != __range;
 	    });
 	    this.updateInflexIndex();
 	    this.sideToSideLink();
-	  }; // 更新折点索引
+	  };
 
-
+	  // 更新折点索引
 	  this.updateInflexIndex = function () {
 	    var _this2 = this;
-
 	    this.inflexPointIndex = [];
 	    var array_d = this.jqNodeEl.attr("d").split(" ");
 	    var refer_pos = getElPosition(this.jqNodeEl);
-
 	    var __x;
-
 	    var __y;
-
 	    var flag = false;
 	    var res_pos;
 	    this.inflexPointArray.forEach(function (inflexPoint) {
@@ -593,7 +523,6 @@
 	      var inflexPoint_pos = getElPosition(inflexPoint.jqNodeEl);
 	      __x = inflexPoint_pos.left - refer_pos.left;
 	      __y = inflexPoint_pos.top - refer_pos.top;
-
 	      for (var i = 0; i < array_d.length; i++) {
 	        if (!flag) {
 	          if (array_d[i] == __x && array_d[i + 1] == __y) {
@@ -602,22 +531,17 @@
 	          }
 	        }
 	      }
-
 	      inflexPoint.range = Math.round(res_pos / 3) - 1;
-
 	      _this2.inflexPointIndex.push(inflexPoint.range);
 	    });
 	  };
-
 	  this.loadData = function () {
 	    if (opt.endNodeId) {
 	      self.endNode = findNode(opt.endNodeId);
 	      self.startNode.relationLinkNodeIdArray.push(self.id);
 	      self.endNode.relationLinkNodeIdArray.push(self.id);
-
-	      self.__lineMouseoverEventInit(); // 连线之后，进行右键菜单初始化
-
-
+	      self.__lineMouseoverEventInit();
+	      // 连线之后，进行右键菜单初始化
 	      rightClickInit(self, vTopo);
 	      opt.inflexPointArray.forEach(function (tmp) {
 	        var __inflexNode = new inflexPoint({
@@ -630,11 +554,8 @@
 	            top: tmp.pos.top
 	          }
 	        });
-
 	        self.inflexPointArray.push(__inflexNode);
-
 	        var __range = self.insertInflexPoint(__inflexNode);
-
 	        __inflexNode.range = __range;
 	      });
 	      self.sideToSideLink();
@@ -642,7 +563,6 @@
 	      self.__lineMousemoveEventInit();
 	    }
 	  };
-
 	  this.saveData = function () {
 	    var saveData = {};
 	    saveData.type = "line";
@@ -650,35 +570,27 @@
 	    saveData.startNodeId = this.startNode.id;
 	    saveData.endNodeId = this.endNode.id;
 	    saveData.inflexPointArray = [];
-
 	    var __array = _.sortBy(this.inflexPointIndex, function (num) {
 	      return Math.min(num);
 	    });
-
 	    __array.forEach(function (__id) {
 	      var tmp = _.find(self.inflexPointArray, function (__tmp) {
 	        return __tmp.range == __id;
 	      });
-
 	      var __obj = new Object();
-
 	      __obj.pos = getElPosition(tmp.jqNodeEl);
 	      __obj.id = tmp.node_id;
 	      __obj.range = tmp.range;
 	      saveData.inflexPointArray.push(__obj);
 	    });
-
 	    return saveData;
 	  };
-
 	  this.loadData();
 	}
-
 	LineNode.prototype = new BaseNode();
 
 	function textNode(opt) {
 	  var _this = this;
-
 	  var vTopo = opt.vTopo;
 	  var y_margin = vTopo.vTopoOpt.components.text.yMargin;
 	  this.type = 'text';
@@ -696,25 +608,20 @@
 	    "y": this.parentNode.getNodeWidthHeight().height + y_margin
 	  });
 	  this.parentNode.snapBaseNode.add(this.snapNode);
-
 	  this.textLayout = function () {
 	    var _this2 = this;
-
 	    var p_width_height = this.parentNode.getNodeWidthHeight();
 	    opt.textArray.forEach(function (tmp, i) {
 	      _this2.jqNodeEl.find("tspan").eq(i).attr("x", (p_width_height.width - tmp.width) / 2);
-
 	      _this2.jqNodeEl.find("tspan").eq(i).attr("y", p_width_height.height + y_margin + y_margin * i);
 	    });
 	  };
-
 	  this.remove = function () {
 	    this.snapNode.remove();
 	    this.parentNode = null;
 	    this.snapNode = null;
 	    this.jqNodeEl = null;
 	  };
-
 	  this.textLayout();
 	}
 
@@ -728,18 +635,18 @@
 	function CircleNode(vTopo, opt) {
 	  var self = this;
 	  this.type = 'circle';
+	  this.isLinkNode = opt.isLinkNode || false;
 	  this.cx = vTopo.vTopoOpt.components.circle.cx;
 	  this.cy = vTopo.vTopoOpt.components.circle.cy;
-	  this.r = vTopo.vTopoOpt.components.circle.r; // 关联的LineNodeArray
+	  this.r = opt.r || vTopo.vTopoOpt.components.circle.r;
 
+	  // 关联的LineNodeArray
 	  this.relationLinkNodeIdArray = [];
 	  this.textArray = [];
 	  this.img = opt.img;
 	  this.textNode;
 	  this.snapBaseNodeCreate(vTopo, opt);
-
 	  var __jqVTopoBaseNode_pos = getElPosition(vTopo.jqVTopoBaseNode);
-
 	  this.snapNode = vTopo.snapSvg.paper.circle(this.cx, this.cy, this.r).attr({
 	    "id": 'c_' + this.id,
 	    "data-type": "circle",
@@ -756,7 +663,6 @@
 	  this.snapBaseNode.add(this.snapShadowImgNode);
 	  this.status;
 	  this.removeCbf;
-
 	  this.getPosRange = function () {
 	    var pos = getElPosition(this.jqBaseNodeEl);
 	    return {
@@ -764,49 +670,40 @@
 	      y_range: [pos.top, pos.top + this.r * 2]
 	    };
 	  };
-
 	  this.getCenterPosition = function () {
 	    var offset = this.r;
-
 	    var __attr = this.jqBaseNodeEl.attr("transform");
-
 	    if (!__attr) return {
 	      left: 0 + offset,
 	      top: 0 + offset
 	    };
-
 	    var __array = __attr.replace(")", "").split(",");
-
 	    return {
 	      left: parseInt(__array[4]) + offset,
 	      top: parseInt(__array[5]) + offset
 	    };
 	  };
-
 	  this.getNodeWidthHeight = function () {
 	    return {
 	      width: this.r * 2,
 	      height: this.r * 2
 	    };
 	  };
-
 	  this.updataRelationLinkNode = function (id) {
 	    this.relationLinkNodeIdArray = _.filter(this.relationLinkNodeIdArray, function (tmp) {
 	      return tmp != id;
 	    });
 	  };
-
 	  this.setImg = function (imgPath) {
 	    this.snapImgNode.attr("xlink:href", vTopo.vTopoOpt.config.imgPath + imgPath);
 	  };
-
 	  this.setStatusImg = function (statusImgPath) {
-	    this.snapShadowImgNode.attr("xlink:href", vTopo.vTopoOpt.config.imgPath + statusImgPath); //this.snapShadowImgNode.attr("class" ,"vTopo-breath-light")
+	    this.snapShadowImgNode.attr("xlink:href", vTopo.vTopoOpt.config.imgPath + statusImgPath);
+	    //this.snapShadowImgNode.attr("class" ,"vTopo-breath-light")
 	  };
 
 	  this.remove = function () {
 	    var _this = this;
-
 	    this.removeCbf && this.removeCbf(this.id);
 	    removeNode(this.id);
 	    vTopo.nodeArray = _.filter(vTopo.nodeArray, function (tmp) {
@@ -814,7 +711,6 @@
 	    });
 	    this.jqBaseNodeEl.remove();
 	    /** 相关联的连线也需要删除 */
-
 	    self.relationLinkNodeIdArray.forEach(function (tmp) {
 	      findNode(tmp).remove();
 	    });
@@ -829,7 +725,6 @@
 	    this.snapShadowImgNode = null;
 	    this.baseRemove();
 	  };
-
 	  this.loadData = function (opt) {
 	    this.setImg(opt.img);
 	    if (opt.transform) this.jqBaseNodeEl.attr("transform", opt.transform);
@@ -844,11 +739,9 @@
 	      textArray: self.textArray
 	    });
 	  };
-
 	  vTopo.nodeArray.push(this);
 	  if (vTopo.mode != "view") this.snapBaseNode.drag();
 	  this.loadData(opt);
-
 	  var mousemove_throttle = _.throttle(function (e) {
 	    vTopo.setGuideLinePos(self.getCenterPosition());
 	    e.stopPropagation();
@@ -856,7 +749,6 @@
 	      findNode(tmp).sideToSideLink();
 	    });
 	  }, 50);
-
 	  if (vTopo.mode != "view") {
 	    this.jqBaseNodeEl.bind('mousedown', function (e) {
 	      e.stopPropagation();
@@ -867,8 +759,13 @@
 	        vTopo.resetGuideLinePos();
 	      });
 	    });
+	  } else {
+	    if (self.isLinkNode) {
+	      setTimeout(function () {
+	        self.jqBaseNodeEl.css('opacity', 0);
+	      }, 10);
+	    }
 	  }
-
 	  rightClickInit(this, vTopo, {
 	    createLineNode: function createLineNode(opt) {
 	      // {startNode:node ,vTopo:vTopo}
@@ -881,12 +778,9 @@
 	      self.textArray = opt.textArray;
 	    }
 	  });
-
 	  this.setText = function (textStr) {
 	    $("#t_" + self.id).remove();
-
 	    var __textArray = splitText(textStr, vTopo);
-
 	    this.textNode = new textNode({
 	      parentNode: self,
 	      vTopo: vTopo,
@@ -894,19 +788,19 @@
 	    });
 	    self.textArray = __textArray;
 	  };
-
 	  this.saveData = function () {
 	    var saveData = {};
 	    saveData.type = "circle";
+	    saveData.r = this.r;
 	    saveData.id = this.id;
 	    saveData.transform = this.jqBaseNodeEl.attr("transform");
 	    saveData.img = this.img;
 	    saveData.textArray = this.textArray;
 	    saveData.status = this.status;
+	    saveData.isLinkNode = this.isLinkNode;
 	    return saveData;
 	  };
 	}
-
 	CircleNode.prototype = new BaseNode();
 
 	function eventInit(vTopo) {
@@ -914,20 +808,21 @@
 	  vTopo.jqWrapperEl.bind("contextmenu", function (e) {
 	    e.preventDefault();
 	    return false;
-	  }); // 鼠标左键点击事件
+	  });
 
+	  // 鼠标左键点击事件
 	  vTopo.jqWrapperEl.bind('click', function () {
 	    // 清除菜单
-	    $(".vtopo-context-menu").remove(); // 清楚dialog
-
+	    $(".vtopo-context-menu").remove();
+	    // 清楚dialog
 	    $(".vTopo-dialog").remove();
 	    vTopo.resetGuideLinePos();
-	  }); // 鼠标滑动拖拽事件
+	  });
 
+	  // 鼠标滑动拖拽事件
 	  var mousemove_x;
 	  var mousemove_y;
 	  var mousemove_ori_pos;
-
 	  var mousemove_throttle = _.throttle(function (e) {
 	    e.stopPropagation();
 	    setElTransform(vTopo.jqVTopoBaseNode, {
@@ -935,7 +830,6 @@
 	      top: mousemove_ori_pos.top + (e.clientY - mousemove_y) * vTopo.zoomScale
 	    });
 	  }, 10);
-
 	  $(window).bind('mousedown.vTopo', function (e) {
 	    mousemove_x = e.clientX;
 	    mousemove_y = e.clientY;
@@ -950,22 +844,23 @@
 	}
 	function zoomEventInit(vTopo) {
 	  var __windowSizeChange = _.debounce(function () {
-	    vTopo.setViewBox(); //vTopo.alignLayout()
+	    vTopo.setViewBox();
+	    //vTopo.alignLayout()
 	  }, 100);
-
 	  $(window).resize(__windowSizeChange);
-
 	  var __zoomEvent = _.throttle(function (e) {
 	    e.preventDefault();
-	    var delta = e.originalEvent.wheelDelta && (e.originalEvent.wheelDelta > 0 ? 1 : -1) || // chrome & ie
+	    var delta = e.originalEvent.wheelDelta && (e.originalEvent.wheelDelta > 0 ? 1 : -1) ||
+	    // chrome & ie
 	    e.originalEvent.detail && (e.originalEvent.detail > 0 ? -1 : 1); // firefox
 
-	    if (delta > 0) // 向上滚，缩小
-	      vTopo.zoomScale = vTopo.zoomScale - 0.1;else if (delta < 0) // 向下滚，放大
+	    if (delta > 0)
+	      // 向上滚，缩小
+	      vTopo.zoomScale = vTopo.zoomScale - 0.1;else if (delta < 0)
+	      // 向下滚，放大
 	      vTopo.zoomScale = vTopo.zoomScale + 0.1;
 	    vTopo.setViewBox();
 	  }, 50);
-
 	  vTopo.jqWrapperEl.on("mousewheel DOMMouseScroll", __zoomEvent);
 	}
 
@@ -1008,8 +903,9 @@
 
 	function VTopo(opt) {
 	  var self = this;
-	  this.uuid = new Date().getTime(); // 只记录circle节点
+	  this.uuid = new Date().getTime();
 
+	  // 只记录circle节点
 	  this.nodeArray = [];
 	  this.vTopoOpt = {
 	    components: {
@@ -1021,7 +917,7 @@
 	      },
 	      line: {
 	        strokeColor: '#3d88e0',
-	        lineWidth: 2
+	        lineWidth: 1
 	      },
 	      text: {
 	        yMargin: 21,
@@ -1056,107 +952,86 @@
 	  this.jqGuideLineY;
 	  this.zoomScale = 1;
 	  clearAllNode();
-
 	  this.createBaseNode = function () {
 	  };
-
 	  this.createCircleNode = function (opt) {
 	    return new CircleNode(self, opt);
-	  }; // 清空所有元素
+	  };
 
-
+	  // 清空所有元素
 	  this.clear = function () {
 	    var __nodeList = nodeList();
-
 	    var __circleArray = _.filter(__nodeList, function (tmp) {
 	      return tmp.type == "circle";
 	    });
-
 	    __circleArray.forEach(function (tmp) {
 	      tmp.remove();
 	    });
 	  };
-
 	  this.findNode = function (nodeId) {
 	    return findNode(nodeId);
-	  }; // 加载数据
+	  };
 
-
+	  // 加载数据
 	  this.loadData = function (jsonData) {
 	    this.clear();
 	    setElTransform(this.jqVTopoBaseNode, {
 	      left: 0,
 	      top: 0
-	    }); // 先加载circle  再加载线
-
+	    });
+	    // 先加载circle  再加载线
 	    var __data = jsonData;
 	    var __nodeList = __data.nodeList;
-
 	    var __circleArray = _.filter(__nodeList, function (tmp) {
 	      return tmp.type == "circle";
 	    });
-
 	    __circleArray.forEach(function (tmp) {
 	      new CircleNode(self, tmp);
 	    });
-
 	    var __lineArray = _.filter(__nodeList, function (tmp) {
 	      return tmp.type == "line";
 	    });
-
 	    __lineArray.forEach(function (tmp) {
 	      tmp.startNode = findNode(tmp.startNodeId);
 	      new LineNode(self, tmp);
 	    });
-
 	    setElTransform(this.jqVTopoBaseNode, __data.transform);
-	    this.alignLayout();
-	  }; // 保存数据
+	    //this.alignLayout()
+	  };
 
-
+	  // 保存数据
 	  this.saveData = function () {
 	    var saveData = new Object();
 	    saveData.nodeList = [];
-
 	    var __nodeList = nodeList();
-
 	    __nodeList.forEach(function (node) {
 	      saveData.nodeList.push(node.saveData());
 	    });
-
 	    saveData.transform = getElPosition(this.jqVTopoBaseNode);
+	    console.log(saveData);
 	    return JSON.stringify(saveData);
 	  };
-
 	  this.initTextSplit = function () {
 	    this.jqTextSplit = $('<div class="vTopo-text-split"></div>').appendTo(this.jqWrapperEl);
 	  };
-
 	  this.setViewBox = function () {
 	    var __width = this.jqWrapperEl.width() * this.zoomScale;
-
 	    var __height = this.jqWrapperEl.height() * this.zoomScale;
-
 	    this.snapSvg.attr("viewBox", "0,0," + __width + "," + __height);
 	  };
-
 	  this.initGuideLine = function () {
 	    this.jqGuideLineX = $('<div class="vTopo-guideline-x"></div>').appendTo(this.jqWrapperEl);
 	    this.jqGuideLineY = $('<div class="vTopo-guideline-y"></div>').appendTo(this.jqWrapperEl);
 	  };
-
 	  this.setGuideLinePos = function (pos) {
 	    var __jqVTopoBaseNode_pos = getElPosition(this.jqVTopoBaseNode);
-
 	    this.jqGuideLineX.css("top", pos.top + __jqVTopoBaseNode_pos.top + "px");
 	    this.jqGuideLineY.css("left", pos.left + __jqVTopoBaseNode_pos.left + this.jqWrapperElOffset.left + "px");
 	  };
-
 	  this.resetGuideLinePos = function () {
 	    this.jqGuideLineX.css("top", "9999px");
 	    this.jqGuideLineY.css("left", "9999px");
 	  };
-
 	  this.alignLayout = function () {
 	    var jqVTopoBaseNode_pos = getElPosition(this.jqVTopoBaseNode);
 	    var jqVTopoBaseNode_w_h = this.jqVTopoBaseNode[0].getBoundingClientRect();
@@ -1166,15 +1041,11 @@
 	    var y_array = [];
 	    this.nodeArray.forEach(function (tmp) {
 	      var __pos = getElPosition(tmp.jqBaseNodeEl);
-
 	      x_array.push(__pos.left);
 	      y_array.push(__pos.top);
 	    });
-
 	    var x_min = _.min(x_array);
-
 	    var y_min = _.min(y_array);
-
 	    var x_tmp = (jqWrapperEl_width - jqVTopoBaseNode_w_h.width) / 2 - (jqVTopoBaseNode_pos.left + x_min);
 	    var y_tmp = (jqWrapperEl_height - jqVTopoBaseNode_w_h.height) / 2 - (jqVTopoBaseNode_pos.top + y_min);
 	    setElTransform(this.jqVTopoBaseNode, {
@@ -1182,7 +1053,6 @@
 	      top: jqVTopoBaseNode_pos.top + y_tmp
 	    });
 	  };
-
 	  eventInit(self);
 	  if (this.mode != "view") this.initGuideLine();else this.setViewBox(), zoomEventInit(self);
 	  defs.init(self);
@@ -1191,4 +1061,4 @@
 
 	return VTopo;
 
-}));
+})));

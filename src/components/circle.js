@@ -15,10 +15,11 @@ import {getElPosition,getEventOffSetX ,getEventOffSetY ,splitText} from '../util
 function CircleNode(vTopo ,opt){
 	var self = this
 	this.type = 'circle'
+	this.isLinkNode = opt.isLinkNode || false
 
 	this.cx = vTopo.vTopoOpt.components.circle.cx
 	this.cy = vTopo.vTopoOpt.components.circle.cy
-	this.r = vTopo.vTopoOpt.components.circle.r
+	this.r = opt.r || vTopo.vTopoOpt.components.circle.r
 
 	// 关联的LineNodeArray
 	this.relationLinkNodeIdArray = []
@@ -161,6 +162,12 @@ function CircleNode(vTopo ,opt){
 				vTopo.resetGuideLinePos()
 			})
 		})
+	}else{
+		if (self.isLinkNode){
+			setTimeout(() => {
+				self.jqBaseNodeEl.css('opacity' ,0)
+			}, 10);
+		}
 	}
 
 	rightClickInit(this ,vTopo ,{
@@ -186,11 +193,13 @@ function CircleNode(vTopo ,opt){
 	this.saveData = function (){
 		let saveData = {}
 		saveData.type = "circle"
+		saveData.r = this.r
 		saveData.id = this.id
 		saveData.transform = this.jqBaseNodeEl.attr("transform")
 		saveData.img = this.img
 		saveData.textArray = this.textArray
 		saveData.status = this.status
+		saveData.isLinkNode = this.isLinkNode
 		return saveData
 	}
 }

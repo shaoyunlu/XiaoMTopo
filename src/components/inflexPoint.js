@@ -87,6 +87,10 @@ function inflexPoint(opt){
 	}
 
 	rightClickInit(this ,vTopo)
+
+	if (vTopo.mode == 'view'){
+		this.jqNodeEl.css('opacity' ,0)
+	}
 }
 
 export default inflexPoint

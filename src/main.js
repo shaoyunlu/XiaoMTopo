@@ -30,7 +30,7 @@ function VTopo(opt){
 			line : 
 			{
 				strokeColor : '#3d88e0',
-				lineWidth : 2
+				lineWidth : 1
 			},
 			text :
 			{
@@ -104,7 +104,7 @@ function VTopo(opt){
 			new LineNode(self ,tmp)
 		})
 		setElTransform(this.jqVTopoBaseNode ,__data.transform)
-		this.alignLayout()
+		//this.alignLayout()
 	}
 
 	// 保存数据
@@ -116,6 +116,7 @@ function VTopo(opt){
 			saveData.nodeList.push(node.saveData())
 		})
 		saveData.transform = getElPosition(this.jqVTopoBaseNode)
+		console.log(saveData)
 		return JSON.stringify(saveData)
 	}
 
