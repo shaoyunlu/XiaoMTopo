@@ -13,6 +13,9 @@
 </head>
 	<style>
 		html,body{padding:0;margin:0;width:100%;height:100%;overflow:hidden;}
+		body{
+			background:url('img/bg.jpg')
+		}
 		html,body,*{box-sizing: border-box;}
 		ul{margin:0;padding:0;}
 		li{list-style:none}
@@ -29,6 +32,8 @@
 	<div class="head">
 		<ul>
 			<li id="circleNode" style="margin-left:30px;">节点</li>
+			<li id="gyNode" style="margin-left:30px;">高压间</li>
+			<li id="byNode" style="margin-left:30px;">变压器</li>
 			<li id="linkNode" style="margin-left:30px;">连接节点</li>
 			<li id="tbAlign" style="margin-left:30px;">上下对齐</li>
 			<li id="lrAlign" style="margin-left:30px;">左右对齐</li>
@@ -55,7 +60,15 @@
 	})
 
 	$("#circleNode").click(function (){
-		vTopo.createCircleNode({img:"6060.png" ,r:20})
+		vTopo.createCircleNode({img:"wenhao.png" ,r:20})
+	})
+
+	document.getElementById('gyNode').addEventListener('click' ,()=>{
+		vTopo.createCircleNode({img:"高压间.png" ,r:20})
+	})
+
+	document.getElementById('byNode').addEventListener('click' ,()=>{
+		vTopo.createCircleNode({img:"变压器.png" ,r:20})
 	})
 
 	$("#linkNode").click(function (){
@@ -72,6 +85,7 @@
 
 	$("#save").click(function (){
 		var __data = vTopo.saveData()
+		console.log(__data)
 		localStorage.vTopo_saveData = __data
 	})
 
