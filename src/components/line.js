@@ -2,7 +2,8 @@ import BaseNode from './base'
 import {removeNode ,findNode} from '../core/nodePool'
 import InflexPoint from './inflexPoint'
 import {lineIsInNode ,getElPosition ,getSpaceIndexFromLine ,
-		getLinePathWithOutStart,getLinePathWithoutEnd,getEventOffSetX ,getEventOffSetY} from '../utils/index'
+		getLinePathWithOutStart,getLineEndNodePosition,
+		getLinePathWithoutEnd,getEventOffSetX ,getEventOffSetY} from '../utils/index'
 import {rightClickInit} from '../events/click'
 
 /** */
@@ -62,24 +63,36 @@ function LineNode(vTopo ,opt){
 
 		setTimeout(()=>{
 			vTopo.jqWrapperEl.bind('click.drag' ,function (e){
+				vTopo.jqWrapperEl.unbind('.line')
 				e.stopPropagation()
 				vTopo.jqWrapperEl.unbind('mousemove')
 				vTopo.jqWrapperEl.unbind('click.drag')
 				var endNode
 				if (!(endNode = lineIsInNode(self.jqNodeEl ,vTopo))){
-					self.remove()
+					//self.remove()
+					let pos = getLineEndNodePosition(self.jqNodeEl)
+					self.endNode = vTopo.createCircleNode({img:"linknode.png" ,isLinkNode:true ,r:10})
+					let __martix = self.endNode.snapBaseNode.transform().localMatrix
+					__martix.e = pos.left - 10
+					__martix.f = pos.top - 10
+					self.endNode.snapBaseNode.transform(__martix)
 				}
 				else
 				{
 					self.endNode = endNode
-					self.startNode.relationLinkNodeIdArray.push(self.id)
-					self.endNode.relationLinkNodeIdArray.push(self.id)
-					self.sideToSideLink()
-					self.__lineMouseoverEventInit()
-					// 连线之后，进行右键菜单初始化
-					rightClickInit(self ,vTopo)
 				}
+
+				self.startNode.relationLinkNodeIdArray.push(self.id)
+				self.endNode.relationLinkNodeIdArray.push(self.id)
+				self.sideToSideLink()
+				self.__lineMouseoverEventInit()
+				// 连线之后，进行右键菜单初始化
+				rightClickInit(self ,vTopo)
 			})
+			vTopo.jqWrapperEl.bind("contextmenu.line", function (e) {
+				self.remove()
+				vTopo.jqWrapperEl.unbind('.line')
+			});
 		} ,200)
 	}
 
@@ -285,6 +298,17 @@ function LineNode(vTopo ,opt){
 			inflexPoint.range = Math.round(res_pos/3) - 1
 			this.inflexPointIndex.push(inflexPoint.range)
 		})
+	}
+
+	// 更新线段颜色
+	this.updateColor = ()=>{
+		let currentColor = self.snapNode.attr('stroke')
+		if (currentColor == 'rgb(61, 136, 224)'){
+			self.snapNode.attr('stroke' ,'red')
+		}else{
+			self.snapNode.attr('stroke' ,vTopo.vTopoOpt.components.line.strokeColor)
+		}
+		
 	}
 
 	this.loadData = function (){

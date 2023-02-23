@@ -125,7 +125,9 @@ function CircleNode(vTopo ,opt){
 	}
 
 	this.loadData = function (opt){
-		this.setImg(opt.img)
+		if ( !(vTopo.mode == "view" && self.isLinkNode) ){
+			this.setImg(opt.img)
+		}
 		if (opt.transform)
 			this.jqBaseNodeEl.attr("transform" ,opt.transform)
 		if (opt.textArray && opt.textArray.length > 0)
@@ -163,12 +165,6 @@ function CircleNode(vTopo ,opt){
 				vTopo.resetGuideLinePos()
 			})
 		})
-	}else{
-		if (self.isLinkNode){
-			setTimeout(() => {
-				self.jqBaseNodeEl.css('opacity' ,0)
-			}, 10);
-		}
 	}
 
 	rightClickInit(this ,vTopo ,{
@@ -186,20 +182,36 @@ function CircleNode(vTopo ,opt){
 
 	// 左键点击事件
 	this.jqBaseNodeEl.click((e)=>{
-		// 如果是单点
-		if (!vTopo.ctrlDown){
-			vTopo.selectedNodeArray.forEach(node =>{
-				node.removeSelected()
-			})
-			vTopo.selectedNodeArray[0] = self
+
+		if (vTopo.mode == 'view'){
+			self.activeAllLine(self)
 		}else{
-			// ctrl + 鼠标点击
-			vTopo.selectedNodeArray.push(self)
+			// 如果是单点
+			if (!vTopo.ctrlDown){
+				vTopo.selectedNodeArray.forEach(node =>{
+					node.removeSelected()
+				})
+				vTopo.selectedNodeArray = []
+				vTopo.selectedNodeArray.push(self)
+			}else{
+				// ctrl + 鼠标点击
+				vTopo.selectedNodeArray.push(self)
+			}
+			self.selected()
 		}
-		self.selected()
-		e.stopPropagation()
 	})
 
+	// 点击元件，关联的线都要跟着变化
+	this.activeAllLine = (circleNode)=>{
+		circleNode.relationLinkNodeIdArray.forEach(tmp =>{
+			let __line = findNode(tmp)
+			if (__line.startNode.id == circleNode.id){
+				__line.updateColor()
+				this.activeAllLine(__line.endNode)
+			}
+			
+		})
+	}
 
 	// 移动
 	this.handleMove = (key)=>{
@@ -229,12 +241,12 @@ function CircleNode(vTopo ,opt){
 
 	// 选中
 	this.selected = ()=>{
-		self.snapShadowImgNode.attr('href' ,'img/selected.png')
+		self.snapShadowImgNode && self.snapShadowImgNode.attr('href' ,'img/selected.png')
 	}
 
 	// 取消选中
 	this.removeSelected = ()=>{
-		self.snapShadowImgNode.attr('href' ,'')
+		self.snapShadowImgNode && self.snapShadowImgNode.attr('href' ,'')
 	}
 
 	this.setText = function (textStr){

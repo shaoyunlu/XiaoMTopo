@@ -83,7 +83,7 @@ export function splitText(textStr ,vTopo)
              count += 2
  		else   
              count ++
-        if (count == 11 || count == 12)
+        if (count == 110 || count == 120)
          	res.push(textStr.substr(start_pos ,digit)) ,count = 0,digit = 1,start_pos = (i+1)
         else
          	digit++
@@ -104,6 +104,16 @@ export function getEventOffSetX(e ,vTopo){
 
 export function getEventOffSetY(e ,vTopo){
 	return e.pageY - vTopo.jqWrapperElOffset.top
+}
+
+export function getLineEndNodePosition(jqEl){
+	var array_d = jqEl.attr("d").split(" ")
+	var __attr = jqEl.attr("transform")
+	var __array = __attr.replace(")" ,"").split(",")
+	return {
+				left : parseInt(__array[4]) + parseInt(array_d[4]),
+				top : parseInt(__array[5]) + parseInt(array_d[5])
+			}
 }
 
 function __getLineEndNodePosition(jqEl){

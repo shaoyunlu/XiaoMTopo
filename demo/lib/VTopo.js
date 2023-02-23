@@ -118,7 +118,7 @@
 	  var count = 0;
 	  for (var i = 0; i < textStr.length; i++) {
 	    if (textStr.charCodeAt(i) > 127 || textStr.charCodeAt(i) == 94) count += 2;else count++;
-	    if (count == 11 || count == 12) res.push(textStr.substr(start_pos, digit)), count = 0, digit = 1, start_pos = i + 1;else digit++;
+	    if (count == 110 || count == 120) res.push(textStr.substr(start_pos, digit)), count = 0, digit = 1, start_pos = i + 1;else digit++;
 	  }
 	  var res_str = res.join("");
 	  if (res_str.length != textStr.length) res.push(textStr.substr(res_str.length));
@@ -136,6 +136,15 @@
 	}
 	function getEventOffSetY(e, vTopo) {
 	  return e.pageY - vTopo.jqWrapperElOffset.top;
+	}
+	function getLineEndNodePosition(jqEl) {
+	  var array_d = jqEl.attr("d").split(" ");
+	  var __attr = jqEl.attr("transform");
+	  var __array = __attr.replace(")", "").split(",");
+	  return {
+	    left: parseInt(__array[4]) + parseInt(array_d[4]),
+	    top: parseInt(__array[5]) + parseInt(array_d[5])
+	  };
 	}
 	function __getLineEndNodePosition(jqEl) {
 	  var array_d = jqEl.attr("d").split(" ");
@@ -343,21 +352,36 @@
 	    vTopo.jqWrapperEl.bind('mousemove', throttled);
 	    setTimeout(function () {
 	      vTopo.jqWrapperEl.bind('click.drag', function (e) {
+	        vTopo.jqWrapperEl.unbind('.line');
 	        e.stopPropagation();
 	        vTopo.jqWrapperEl.unbind('mousemove');
 	        vTopo.jqWrapperEl.unbind('click.drag');
 	        var endNode;
 	        if (!(endNode = lineIsInNode(self.jqNodeEl, vTopo))) {
-	          self.remove();
+	          //self.remove()
+	          var pos = getLineEndNodePosition(self.jqNodeEl);
+	          self.endNode = vTopo.createCircleNode({
+	            img: "linknode.png",
+	            isLinkNode: true,
+	            r: 10
+	          });
+	          var __martix = self.endNode.snapBaseNode.transform().localMatrix;
+	          __martix.e = pos.left - 10;
+	          __martix.f = pos.top - 10;
+	          self.endNode.snapBaseNode.transform(__martix);
 	        } else {
 	          self.endNode = endNode;
-	          self.startNode.relationLinkNodeIdArray.push(self.id);
-	          self.endNode.relationLinkNodeIdArray.push(self.id);
-	          self.sideToSideLink();
-	          self.__lineMouseoverEventInit();
-	          // 连线之后，进行右键菜单初始化
-	          rightClickInit(self, vTopo);
 	        }
+	        self.startNode.relationLinkNodeIdArray.push(self.id);
+	        self.endNode.relationLinkNodeIdArray.push(self.id);
+	        self.sideToSideLink();
+	        self.__lineMouseoverEventInit();
+	        // 连线之后，进行右键菜单初始化
+	        rightClickInit(self, vTopo);
+	      });
+	      vTopo.jqWrapperEl.bind("contextmenu.line", function (e) {
+	        self.remove();
+	        vTopo.jqWrapperEl.unbind('.line');
 	      });
 	    }, 200);
 	  };
@@ -543,6 +567,16 @@
 	      _this2.inflexPointIndex.push(inflexPoint.range);
 	    });
 	  };
+
+	  // 更新线段颜色
+	  this.updateColor = function () {
+	    var currentColor = self.snapNode.attr('stroke');
+	    if (currentColor == 'rgb(61, 136, 224)') {
+	      self.snapNode.attr('stroke', 'red');
+	    } else {
+	      self.snapNode.attr('stroke', vTopo.vTopoOpt.components.line.strokeColor);
+	    }
+	  };
 	  this.loadData = function () {
 	    if (opt.endNodeId) {
 	      self.endNode = findNode(opt.endNodeId);
@@ -601,7 +635,9 @@
 	  var _this = this;
 	  var vTopo = opt.vTopo;
 	  var y_margin = vTopo.vTopoOpt.components.text.yMargin;
+	  var self = this;
 	  this.type = 'text';
+	  this.align = opt.align || 'bottom';
 	  this.parentNode = opt.parentNode;
 	  this.text = [];
 	  opt.textArray.forEach(function (tmp) {
@@ -612,16 +648,30 @@
 	    "fill": vTopo.vTopoOpt.components.text.textColor
 	  });
 	  this.jqNodeEl = $("#" + 't_' + this.parentNode.id);
-	  this.snapNode.attr({
-	    "y": this.parentNode.getNodeWidthHeight().height + y_margin
-	  });
+
+	  // this.snapNode.attr({
+	  // 	"y" : this.parentNode.getNodeWidthHeight().height + y_margin
+	  // })
+
 	  this.parentNode.snapBaseNode.add(this.snapNode);
 	  this.textLayout = function () {
 	    var _this2 = this;
 	    var p_width_height = this.parentNode.getNodeWidthHeight();
+	    var textArrayLength = opt.textArray.length || 0;
 	    opt.textArray.forEach(function (tmp, i) {
-	      _this2.jqNodeEl.find("tspan").eq(i).attr("x", (p_width_height.width - tmp.width) / 2);
-	      _this2.jqNodeEl.find("tspan").eq(i).attr("y", p_width_height.height + y_margin + y_margin * i);
+	      if (self.align == 'bottom') {
+	        _this2.jqNodeEl.find("tspan").eq(i).attr("x", (p_width_height.width - tmp.width) / 2);
+	        _this2.jqNodeEl.find("tspan").eq(i).attr("y", p_width_height.height + y_margin + y_margin * i);
+	      } else if (self.align == 'right') {
+	        _this2.jqNodeEl.find("tspan").eq(i).attr("x", p_width_height.width);
+	        _this2.jqNodeEl.find("tspan").eq(i).attr("y", p_width_height.height / 2 + y_margin * i);
+	      } else if (self.align == 'top') {
+	        _this2.jqNodeEl.find("tspan").eq(i).attr("x", (p_width_height.width - tmp.width) / 2);
+	        _this2.jqNodeEl.find("tspan").eq(i).attr("y", -(textArrayLength - 1) * 12 + 12 * i);
+	      } else if (self.align == 'left') {
+	        _this2.jqNodeEl.find("tspan").eq(i).attr("x", -tmp.width);
+	        _this2.jqNodeEl.find("tspan").eq(i).attr("y", p_width_height.height / 2 + 12 * i);
+	      }
 	    });
 	  };
 	  this.remove = function () {
@@ -641,6 +691,7 @@
 	*/
 
 	function CircleNode(vTopo, opt) {
+	  var _this2 = this;
 	  var self = this;
 	  this.type = 'circle';
 	  this.isLinkNode = opt.isLinkNode || false;
@@ -735,7 +786,9 @@
 	    this.baseRemove();
 	  };
 	  this.loadData = function (opt) {
-	    this.setImg(opt.img);
+	    if (!(vTopo.mode == "view" && self.isLinkNode)) {
+	      this.setImg(opt.img);
+	    }
 	    if (opt.transform) this.jqBaseNodeEl.attr("transform", opt.transform);
 	    if (opt.textArray && opt.textArray.length > 0) new textNode({
 	      parentNode: self,
@@ -768,12 +821,6 @@
 	        vTopo.resetGuideLinePos();
 	      });
 	    });
-	  } else {
-	    if (self.isLinkNode) {
-	      setTimeout(function () {
-	        self.jqBaseNodeEl.css('opacity', 0);
-	      }, 10);
-	    }
 	  }
 	  rightClickInit(this, vTopo, {
 	    createLineNode: function createLineNode(opt) {
@@ -790,19 +837,34 @@
 
 	  // 左键点击事件
 	  this.jqBaseNodeEl.click(function (e) {
-	    // 如果是单点
-	    if (!vTopo.ctrlDown) {
-	      vTopo.selectedNodeArray.forEach(function (node) {
-	        node.removeSelected();
-	      });
-	      vTopo.selectedNodeArray[0] = self;
+	    if (vTopo.mode == 'view') {
+	      self.activeAllLine(self);
 	    } else {
-	      // ctrl + 鼠标点击
-	      vTopo.selectedNodeArray.push(self);
+	      // 如果是单点
+	      if (!vTopo.ctrlDown) {
+	        vTopo.selectedNodeArray.forEach(function (node) {
+	          node.removeSelected();
+	        });
+	        vTopo.selectedNodeArray = [];
+	        vTopo.selectedNodeArray.push(self);
+	      } else {
+	        // ctrl + 鼠标点击
+	        vTopo.selectedNodeArray.push(self);
+	      }
+	      self.selected();
 	    }
-	    self.selected();
-	    e.stopPropagation();
 	  });
+
+	  // 点击元件，关联的线都要跟着变化
+	  this.activeAllLine = function (circleNode) {
+	    circleNode.relationLinkNodeIdArray.forEach(function (tmp) {
+	      var __line = findNode(tmp);
+	      if (__line.startNode.id == circleNode.id) {
+	        __line.updateColor();
+	        _this2.activeAllLine(__line.endNode);
+	      }
+	    });
+	  };
 
 	  // 移动
 	  this.handleMove = function (key) {
@@ -830,12 +892,12 @@
 
 	  // 选中
 	  this.selected = function () {
-	    self.snapShadowImgNode.attr('href', 'img/selected.png');
+	    self.snapShadowImgNode && self.snapShadowImgNode.attr('href', 'img/selected.png');
 	  };
 
 	  // 取消选中
 	  this.removeSelected = function () {
-	    self.snapShadowImgNode.attr('href', '');
+	    self.snapShadowImgNode && self.snapShadowImgNode.attr('href', '');
 	  };
 	  this.setText = function (textStr) {
 	    $("#t_" + self.id).remove();
@@ -870,17 +932,19 @@
 	  });
 
 	  // 鼠标左键点击事件
-	  vTopo.jqWrapperEl.bind('click', function () {
+	  vTopo.jqWrapperEl.bind('click', function (e) {
 	    // 清除菜单
 	    $(".vtopo-context-menu").remove();
 	    // 清除dialog
 	    $(".vTopo-dialog").remove();
 	    vTopo.resetGuideLinePos();
-	    // 取消选中的节点
-	    vTopo.selectedNodeArray.forEach(function (node) {
-	      node.removeSelected();
-	    });
-	    vTopo.selectedNodeArray = [];
+	    if (e.target.id == 'svg') {
+	      //取消选中的节点
+	      vTopo.selectedNodeArray.forEach(function (node) {
+	        node && node.removeSelected();
+	      });
+	      vTopo.selectedNodeArray = [];
+	    }
 	  });
 
 	  // 鼠标滑动拖拽事件
@@ -997,7 +1061,8 @@
 	        lineWidth: 1
 	      },
 	      text: {
-	        yMargin: 21,
+	        xMargin: 10,
+	        yMargin: 10,
 	        textColor: "#c8e0ff"
 	      },
 	      inflexPoint: {
@@ -1126,8 +1191,8 @@
 	    this.jqGuideLineY.css("left", pos.left + __jqVTopoBaseNode_pos.left + this.jqWrapperElOffset.left + "px");
 	  };
 	  this.resetGuideLinePos = function () {
-	    this.jqGuideLineX.css("top", "9999px");
-	    this.jqGuideLineY.css("left", "9999px");
+	    this.jqGuideLineX && this.jqGuideLineX.css("top", "9999px");
+	    this.jqGuideLineY && this.jqGuideLineY.css("left", "9999px");
 	  };
 	  this.alignLayout = function () {
 	    var jqVTopoBaseNode_pos = getElPosition(this.jqVTopoBaseNode);

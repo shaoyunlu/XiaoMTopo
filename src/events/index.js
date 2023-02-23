@@ -9,18 +9,22 @@ export function eventInit(vTopo)
     });
 
     // 鼠标左键点击事件
-    vTopo.jqWrapperEl.bind('click' ,function (){
+    vTopo.jqWrapperEl.bind('click' ,function (e){
     	// 清除菜单
     	$(".vtopo-context-menu").remove()
         // 清除dialog
         $(".vTopo-dialog").remove()
         vTopo.resetGuideLinePos()
-        // 取消选中的节点
-        vTopo.selectedNodeArray.forEach(node =>{
-            node.removeSelected()
-        })
-        vTopo.selectedNodeArray = []
+        if (e.target.id == 'svg'){
+            //取消选中的节点
+            vTopo.selectedNodeArray.forEach(node =>{
+                node && node.removeSelected()
+            })
+            vTopo.selectedNodeArray = []
+        }
+        
     })
+
 
     // 鼠标滑动拖拽事件
     var mousemove_x

@@ -37,7 +37,8 @@ function VTopo(opt){
 			},
 			text :
 			{
-				yMargin : 21,
+				xMargin : 10,
+				yMargin : 10,
 				textColor : "#c8e0ff"
 			},
 			inflexPoint :
@@ -168,8 +169,8 @@ function VTopo(opt){
 	}
 
 	this.resetGuideLinePos = function (){
-		this.jqGuideLineX.css("top" ,"9999px")
-		this.jqGuideLineY.css("left" ,"9999px")
+		this.jqGuideLineX && this.jqGuideLineX.css("top" ,"9999px")
+		this.jqGuideLineY && this.jqGuideLineY.css("left" ,"9999px")
 	}
 
 	this.alignLayout = function (){
