@@ -12,9 +12,14 @@ export function eventInit(vTopo)
     vTopo.jqWrapperEl.bind('click' ,function (){
     	// 清除菜单
     	$(".vtopo-context-menu").remove()
-        // 清楚dialog
+        // 清除dialog
         $(".vTopo-dialog").remove()
         vTopo.resetGuideLinePos()
+        // 取消选中的节点
+        vTopo.selectedNodeArray.forEach(node =>{
+            node.removeSelected()
+        })
+        vTopo.selectedNodeArray = []
     })
 
     // 鼠标滑动拖拽事件
@@ -38,6 +43,19 @@ export function eventInit(vTopo)
             $(window).unbind('mousemove')
             $(window).unbind('mouseup')
         })
+    })
+
+    document.addEventListener('keydown' ,(e)=>{
+        if (e.key == 'Control'){
+            vTopo.ctrlDown = true
+        }else if (e.key == 'ArrowLeft' || e.key == 'ArrowRight'
+                    || e.key == 'ArrowUp' || e.key == 'ArrowDown'){
+            vTopo.handleMove(e.key)
+        }
+    })
+
+    document.addEventListener('keyup' ,()=>{
+        vTopo.ctrlDown = false
     })
 }
 

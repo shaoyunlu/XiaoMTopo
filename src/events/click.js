@@ -23,6 +23,7 @@ export function rightClickInit(node ,vTopo ,opt)
 var nodeContextMenuStr = `<div class="vtopo-context-menu">
 						<ul>
 							<li data-oper="drawLine">绘制连线</li>
+							<li data-oper="setImage">设置图片</li>
 							<li data-oper="drawNodeText">添加文字</li>
 							<li data-oper="deleteNode">删除元素</li>
 						</ul>
@@ -68,6 +69,13 @@ function __contentMenuShow(node ,vTopo ,e ,opt ,target_el)
 				pos : {left : getEventOffSetX(e ,vTopo) + "px" ,"top" : getEventOffSetY(e ,vTopo) + "px"},
 				enterCbf : function (textArray){
 					opt.createTextNode({parentNode:node ,vTopo:vTopo ,textArray:textArray})
+				}
+			} ,vTopo)
+		else if ( __oper == "setImage")
+			dialogInput({
+				pos : {left : getEventOffSetX(e ,vTopo) + "px" ,"top" : getEventOffSetY(e ,vTopo) + "px"},
+				enterCbf : function (textArray){
+					node.setImg(textArray[0].text + '.png')
 				}
 			} ,vTopo)
 		else if ( __oper == "deleteLine")

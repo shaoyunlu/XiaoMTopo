@@ -17,32 +17,36 @@
 		ul{margin:0;padding:0;}
 		li{list-style:none}
 		.test{width:100%;height:100%;display:flex;flex-direction: column;}
-		.head{height:50px;line-height:50px;}
+		.head{height:50px;line-height:50px;position: fixed;right:0;top:0;
+				background-color: #fff;z-index: 9999;}
 		.head ul{display:flex;}
 		.head li{cursor:pointer;margin-right:20px;}
 		.content{position: relative; flex:1;}
-		.content svg{width:100%;height:100%;background:url('lib/img/BG.png');}
+		.content svg{width:100%;height:100%;background:url('img/bg.jpg');}
 	</style>
 <body>
+	
+	<div class="head">
+		<ul>
+			<li id="circleNode" style="margin-left:30px;">节点</li>
+			<li id="linkNode" style="margin-left:30px;">连接节点</li>
+			<li id="tbAlign" style="margin-left:30px;">上下对齐</li>
+			<li id="lrAlign" style="margin-left:30px;">左右对齐</li>
+			<li id="save" style="margin-left:100px;">保存</li>
+			<li id="load">加载</li>
+			<li id="clear">清空</li>
+		</ul>
+	</div>
+
 	<div class="test">
-		<div class="head">
-			<ul>
-				<li id="circleNode" style="margin-left:30px;">节点</li>
-				<li id="linkNode" style="margin-left:30px;">连接节点</li>
-				<li id="save" style="margin-left:100px;">保存</li>
-				<li id="load">加载</li>
-				<li id="clear">清空</li>
-			</ul>
-		</div>
 		<div style="display:flex;flex-direction:row" class="content">
 			<div style="width:1px"></div>
 			<div style="flex:1">
 				<svg id="svg" ></svg>
 			</div>
 		</div>
-		
 	</div>
-
+	
 </body>
 <script>
 	var vTopo = new VTopo({
@@ -51,11 +55,19 @@
 	})
 
 	$("#circleNode").click(function (){
-		vTopo.createCircleNode({img:"6060.png" ,r:25})
+		vTopo.createCircleNode({img:"6060.png" ,r:20})
 	})
 
 	$("#linkNode").click(function (){
 		vTopo.createCircleNode({img:"linknode.png" ,isLinkNode:true ,r:10})
+	})
+
+	document.getElementById('tbAlign').addEventListener('click' ,()=>{
+		vTopo.align('f')
+	})
+
+	document.getElementById('lrAlign').addEventListener('click' ,()=>{
+		vTopo.align('e')
 	})
 
 	$("#save").click(function (){

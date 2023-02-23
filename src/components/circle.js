@@ -45,7 +45,7 @@ function CircleNode(vTopo ,opt){
 							  })
 
 	this.snapBaseNode.add(this.snapNode)
-	this.snapBaseNode.attr("transform" , "matrix(1,0,0,1,"+(0-__jqVTopoBaseNode_pos.left)+","+(0-__jqVTopoBaseNode_pos.top)+")")
+	this.snapBaseNode.attr("transform" , "matrix(1,0,0,1,"+(0-__jqVTopoBaseNode_pos.left + 900)+","+(0-__jqVTopoBaseNode_pos.top + 500)+")")
 	this.snapBaseNode.attr('id' ,'g_' + this.id)
 	this.jqBaseNodeEl = $("#" + 'g_' + this.id)
 	this.jqNodeEl = $("#" + 'c_' + this.id)
@@ -90,6 +90,7 @@ function CircleNode(vTopo ,opt){
 
 	this.setImg = function (imgPath){
 		this.snapImgNode.attr("xlink:href" ,vTopo.vTopoOpt.config.imgPath+imgPath)
+		this.img = imgPath
 	}
 
 	this.setStatusImg = function (statusImgPath){
@@ -182,6 +183,59 @@ function CircleNode(vTopo ,opt){
 			self.textArray = opt.textArray
 		}
 	})
+
+	// 左键点击事件
+	this.jqBaseNodeEl.click((e)=>{
+		// 如果是单点
+		if (!vTopo.ctrlDown){
+			vTopo.selectedNodeArray.forEach(node =>{
+				node.removeSelected()
+			})
+			vTopo.selectedNodeArray[0] = self
+		}else{
+			// ctrl + 鼠标点击
+			vTopo.selectedNodeArray.push(self)
+		}
+		self.selected()
+		e.stopPropagation()
+	})
+
+
+	// 移动
+	this.handleMove = (key)=>{
+		let martix = self.snapBaseNode.transform().localMatrix
+		switch (key) {
+			case 'ArrowLeft':
+				martix.e = martix.e - 1
+				break;
+			case 'ArrowRight':
+				martix.e = martix.e + 1
+				break;
+			case 'ArrowUp':
+				martix.f = martix.f - 1
+				break;
+			case 'ArrowDown':
+				martix.f = martix.f + 1
+				break;
+			default:
+				break;
+		}
+		self.snapBaseNode.transform(martix)
+		vTopo.setGuideLinePos(self.getCenterPosition())
+		self.relationLinkNodeIdArray.forEach(tmp =>{
+			findNode(tmp).sideToSideLink()
+		})
+	}
+
+	// 选中
+	this.selected = ()=>{
+		self.snapShadowImgNode.attr('href' ,'img/selected.png')
+	}
+
+	// 取消选中
+	this.removeSelected = ()=>{
+		self.snapShadowImgNode.attr('href' ,'')
+	}
 
 	this.setText = function (textStr){
 		$("#t_" + self.id).remove()

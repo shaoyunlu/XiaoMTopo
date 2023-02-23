@@ -16,6 +16,9 @@ function VTopo(opt){
 	// 只记录circle节点
 	this.nodeArray = []
 
+	// 当前选中node
+	this.selectedNodeArray = []
+
 
 	this.vTopoOpt = {
 		components : 
@@ -35,7 +38,7 @@ function VTopo(opt){
 			text :
 			{
 				yMargin : 21,
-				textColor : "#f7fbff"
+				textColor : "#c8e0ff"
 			},
 			inflexPoint :
 			{
@@ -46,7 +49,7 @@ function VTopo(opt){
 		},
 		config : 
 		{
-			imgPath : "img/app_monitor_topo/layout/"
+			imgPath : "img/"
 		}
 	}
 	this.mode = opt.mode
@@ -63,6 +66,7 @@ function VTopo(opt){
 	this.jqGuideLineX
 	this.jqGuideLineY
 	this.zoomScale = 1
+	this.ctrlDown = false
 
 	clearAllNode()
 
@@ -85,6 +89,28 @@ function VTopo(opt){
 
 	this.findNode = function (nodeId){
 		return findNode(nodeId)
+	}
+
+	this.handleMove = (key)=>{
+		if (self.selectedNodeArray.length == 0)
+			return false
+		self.selectedNodeArray[0].handleMove(key)
+	}
+
+	this.align = (type)=>{
+		if (self.selectedNodeArray.length == 0){
+			return false
+		}
+		let firstNode = self.selectedNodeArray[0]
+		let martix = firstNode.snapBaseNode.transform().localMatrix
+		self.selectedNodeArray.forEach((node)=>{
+			let __martix = node.snapBaseNode.transform().localMatrix
+			__martix[type] = martix[type]
+			node.snapBaseNode.transform(__martix)
+			node.relationLinkNodeIdArray.forEach(tmp =>{
+				findNode(tmp).sideToSideLink()
+			})
+		})
 	}
 
 	// 加载数据

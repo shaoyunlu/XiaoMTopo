@@ -176,7 +176,7 @@
 	    e.stopPropagation();
 	  });
 	}
-	var nodeContextMenuStr = "<div class=\"vtopo-context-menu\">\n\t\t\t\t\t\t<ul>\n\t\t\t\t\t\t\t<li data-oper=\"drawLine\">\u7ED8\u5236\u8FDE\u7EBF</li>\n\t\t\t\t\t\t\t<li data-oper=\"drawNodeText\">\u6DFB\u52A0\u6587\u5B57</li>\n\t\t\t\t\t\t\t<li data-oper=\"deleteNode\">\u5220\u9664\u5143\u7D20</li>\n\t\t\t\t\t\t</ul>\n\t\t\t\t\t</div>";
+	var nodeContextMenuStr = "<div class=\"vtopo-context-menu\">\n\t\t\t\t\t\t<ul>\n\t\t\t\t\t\t\t<li data-oper=\"drawLine\">\u7ED8\u5236\u8FDE\u7EBF</li>\n\t\t\t\t\t\t\t<li data-oper=\"setImage\">\u8BBE\u7F6E\u56FE\u7247</li>\n\t\t\t\t\t\t\t<li data-oper=\"drawNodeText\">\u6DFB\u52A0\u6587\u5B57</li>\n\t\t\t\t\t\t\t<li data-oper=\"deleteNode\">\u5220\u9664\u5143\u7D20</li>\n\t\t\t\t\t\t</ul>\n\t\t\t\t\t</div>";
 	var lineContextMenuStr = "<div class=\"vtopo-context-menu\">\n\t\t\t\t\t\t<ul>\n\t\t\t\t\t\t\t<li data-oper=\"addTextInLine\" style=\"display:none\">\u6DFB\u52A0\u6587\u5B57</li>\n\t\t\t\t\t\t\t<li data-oper=\"deleteLine\">\u5220\u9664\u8FDE\u7EBF</li>\n\t\t\t\t\t\t</ul>\n\t\t\t\t\t</div>";
 	var inflexNodeContextMenuStr = "<div class=\"vtopo-context-menu\">\n\t\t\t\t\t\t<ul>\n\t\t\t\t\t\t\t<li data-oper=\"deleteInflexNode\">\u5220\u9664\u5143\u7D20</li>\n\t\t\t\t\t\t</ul>\n\t\t\t\t\t</div>";
 	function __contentMenuShow(node, vTopo, e, opt, target_el) {
@@ -205,6 +205,14 @@
 	          vTopo: vTopo,
 	          textArray: textArray
 	        });
+	      }
+	    }, vTopo);else if (__oper == "setImage") dialogInput({
+	      pos: {
+	        left: getEventOffSetX(e, vTopo) + "px",
+	        "top": getEventOffSetY(e, vTopo) + "px"
+	      },
+	      enterCbf: function enterCbf(textArray) {
+	        node.setImg(textArray[0].text + '.png');
 	      }
 	    }, vTopo);else if (__oper == "deleteLine") node.remove();else if (__oper == "drawLine") opt.createLineNode({
 	      startNode: node,
@@ -653,7 +661,7 @@
 	    "fill": 'none'
 	  });
 	  this.snapBaseNode.add(this.snapNode);
-	  this.snapBaseNode.attr("transform", "matrix(1,0,0,1," + (0 - __jqVTopoBaseNode_pos.left) + "," + (0 - __jqVTopoBaseNode_pos.top) + ")");
+	  this.snapBaseNode.attr("transform", "matrix(1,0,0,1," + (0 - __jqVTopoBaseNode_pos.left + 900) + "," + (0 - __jqVTopoBaseNode_pos.top + 500) + ")");
 	  this.snapBaseNode.attr('id', 'g_' + this.id);
 	  this.jqBaseNodeEl = $("#" + 'g_' + this.id);
 	  this.jqNodeEl = $("#" + 'c_' + this.id);
@@ -696,6 +704,7 @@
 	  };
 	  this.setImg = function (imgPath) {
 	    this.snapImgNode.attr("xlink:href", vTopo.vTopoOpt.config.imgPath + imgPath);
+	    this.img = imgPath;
 	  };
 	  this.setStatusImg = function (statusImgPath) {
 	    this.snapShadowImgNode.attr("xlink:href", vTopo.vTopoOpt.config.imgPath + statusImgPath);
@@ -778,6 +787,56 @@
 	      self.textArray = opt.textArray;
 	    }
 	  });
+
+	  // 左键点击事件
+	  this.jqBaseNodeEl.click(function (e) {
+	    // 如果是单点
+	    if (!vTopo.ctrlDown) {
+	      vTopo.selectedNodeArray.forEach(function (node) {
+	        node.removeSelected();
+	      });
+	      vTopo.selectedNodeArray[0] = self;
+	    } else {
+	      // ctrl + 鼠标点击
+	      vTopo.selectedNodeArray.push(self);
+	    }
+	    self.selected();
+	    e.stopPropagation();
+	  });
+
+	  // 移动
+	  this.handleMove = function (key) {
+	    var martix = self.snapBaseNode.transform().localMatrix;
+	    switch (key) {
+	      case 'ArrowLeft':
+	        martix.e = martix.e - 1;
+	        break;
+	      case 'ArrowRight':
+	        martix.e = martix.e + 1;
+	        break;
+	      case 'ArrowUp':
+	        martix.f = martix.f - 1;
+	        break;
+	      case 'ArrowDown':
+	        martix.f = martix.f + 1;
+	        break;
+	    }
+	    self.snapBaseNode.transform(martix);
+	    vTopo.setGuideLinePos(self.getCenterPosition());
+	    self.relationLinkNodeIdArray.forEach(function (tmp) {
+	      findNode(tmp).sideToSideLink();
+	    });
+	  };
+
+	  // 选中
+	  this.selected = function () {
+	    self.snapShadowImgNode.attr('href', 'img/selected.png');
+	  };
+
+	  // 取消选中
+	  this.removeSelected = function () {
+	    self.snapShadowImgNode.attr('href', '');
+	  };
 	  this.setText = function (textStr) {
 	    $("#t_" + self.id).remove();
 	    var __textArray = splitText(textStr, vTopo);
@@ -814,9 +873,14 @@
 	  vTopo.jqWrapperEl.bind('click', function () {
 	    // 清除菜单
 	    $(".vtopo-context-menu").remove();
-	    // 清楚dialog
+	    // 清除dialog
 	    $(".vTopo-dialog").remove();
 	    vTopo.resetGuideLinePos();
+	    // 取消选中的节点
+	    vTopo.selectedNodeArray.forEach(function (node) {
+	      node.removeSelected();
+	    });
+	    vTopo.selectedNodeArray = [];
 	  });
 
 	  // 鼠标滑动拖拽事件
@@ -840,6 +904,16 @@
 	      $(window).unbind('mousemove');
 	      $(window).unbind('mouseup');
 	    });
+	  });
+	  document.addEventListener('keydown', function (e) {
+	    if (e.key == 'Control') {
+	      vTopo.ctrlDown = true;
+	    } else if (e.key == 'ArrowLeft' || e.key == 'ArrowRight' || e.key == 'ArrowUp' || e.key == 'ArrowDown') {
+	      vTopo.handleMove(e.key);
+	    }
+	  });
+	  document.addEventListener('keyup', function () {
+	    vTopo.ctrlDown = false;
 	  });
 	}
 	function zoomEventInit(vTopo) {
@@ -907,6 +981,9 @@
 
 	  // 只记录circle节点
 	  this.nodeArray = [];
+
+	  // 当前选中node
+	  this.selectedNodeArray = [];
 	  this.vTopoOpt = {
 	    components: {
 	      circle: {
@@ -921,7 +998,7 @@
 	      },
 	      text: {
 	        yMargin: 21,
-	        textColor: "#f7fbff"
+	        textColor: "#c8e0ff"
 	      },
 	      inflexPoint: {
 	        cx: 0,
@@ -930,7 +1007,7 @@
 	      }
 	    },
 	    config: {
-	      imgPath: "img/app_monitor_topo/layout/"
+	      imgPath: "img/"
 	    }
 	  };
 	  this.mode = opt.mode;
@@ -951,6 +1028,7 @@
 	  this.jqGuideLineX;
 	  this.jqGuideLineY;
 	  this.zoomScale = 1;
+	  this.ctrlDown = false;
 	  clearAllNode();
 	  this.createBaseNode = function () {
 	  };
@@ -970,6 +1048,25 @@
 	  };
 	  this.findNode = function (nodeId) {
 	    return findNode(nodeId);
+	  };
+	  this.handleMove = function (key) {
+	    if (self.selectedNodeArray.length == 0) return false;
+	    self.selectedNodeArray[0].handleMove(key);
+	  };
+	  this.align = function (type) {
+	    if (self.selectedNodeArray.length == 0) {
+	      return false;
+	    }
+	    var firstNode = self.selectedNodeArray[0];
+	    var martix = firstNode.snapBaseNode.transform().localMatrix;
+	    self.selectedNodeArray.forEach(function (node) {
+	      var __martix = node.snapBaseNode.transform().localMatrix;
+	      __martix[type] = martix[type];
+	      node.snapBaseNode.transform(__martix);
+	      node.relationLinkNodeIdArray.forEach(function (tmp) {
+	        findNode(tmp).sideToSideLink();
+	      });
+	    });
 	  };
 
 	  // 加载数据
