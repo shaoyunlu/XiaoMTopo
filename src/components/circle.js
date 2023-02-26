@@ -43,7 +43,7 @@ function CircleNode(vTopo ,opt){
 							  })
 
 	this.snapBaseNode.add(this.snapNode)
-	this.snapBaseNode.attr("transform" , "matrix(1,0,0,1,"+(0-__jqVTopoBaseNode_pos.left + 900)+","+(0-__jqVTopoBaseNode_pos.top + 500)+")")
+	this.snapBaseNode.attr("transform" , "matrix(1,0,0,1,"+(0-__jqVTopoBaseNode_pos.left + 10)+","+(0-__jqVTopoBaseNode_pos.top + 10)+")")
 	this.snapBaseNode.attr('id' ,'g_' + this.id)
 	this.jqBaseNodeEl = $("#" + 'g_' + this.id)
 	this.jqNodeEl = $("#" + 'c_' + this.id)
@@ -55,7 +55,7 @@ function CircleNode(vTopo ,opt){
 	this.snapBaseNode.add(this.snapImgNode)
 	this.snapBaseNode.add(this.snapShadowImgNode)
 
-	this.status = opt.status || true
+	this.status = opt.status
 
 	this.removeCbf
 
@@ -94,10 +94,19 @@ function CircleNode(vTopo ,opt){
 	this.__setStatusImg = (status)=>{
 		if (this.isLinkNode)
 			return false
-		if (status)
+		if (status){
 			this.setStatusImg('light_green.png')
-		else
+			if (this.category == 'route'){
+				this.setImg('route.png')
+			}
+		}
+		else{
 			this.setStatusImg('light_grey.png')
+			if (this.category == 'route'){
+				this.setImg('route_disconnect.png')
+			}
+		}
+			
 	}
 
 	this.setStatusImg = function (statusImgPath){
@@ -230,6 +239,10 @@ function CircleNode(vTopo ,opt){
 				}
 			}
 			self.activeAllLine(self ,self)
+			if (vTopo.masterSlaveMapping[self.id]){
+				let slave = vTopo.masterSlaveMapping[self.id]
+				self.activeAllLine(slave ,slave)
+			}
 		}else{
 			// 如果是单点
 			if (!vTopo.ctrlDown){
@@ -248,35 +261,35 @@ function CircleNode(vTopo ,opt){
 
 
 	this.handleContactClick = ()=>{
+		// 切换图片
+		self.status = !self.status
+		let img = this.img == 'contact.png' ? 'contact_close.png' : 'contact.png'
+		self.setImg(img)
+
 		let parentNode1
 		let parentNode2
-		let routeNode1
-		let routeNode2
 		self.relationLinkNodeIdArray.forEach(tmp=>{
 			let __line = findNode(tmp)
 			let endNode = __line.endNode
-			if (!routeNode1){
-				parentNode1 = endNode
-				routeNode1 = vTopo.findParentNode(vTopo.findAllParentNodes(endNode)[0])
+			if (!parentNode1){
+				parentNode1 = vTopo.findAllParentNodes(endNode)[0]
+
 			}else{
-				parentNode2 = endNode
-				routeNode2 = vTopo.findParentNode(vTopo.findAllParentNodes(endNode)[0])
+				parentNode2 = vTopo.findAllParentNodes(endNode)[0]
 			}
 		})
 
-		let startNode
-		let endNode
-		let flag = false
-
-		if (routeNode1.status && !routeNode2.status){
-			startNode = parentNode1
-			endNode = parentNode2
-			flag = true
-		}else if (!routeNode1.status && routeNode2.status){
-			startNode = parentNode2
-			endNode = parentNode1
-			flag = true
+		if (self.status){
+			
+			vTopo.masterSlaveMapping[parentNode1.id] = parentNode2
+			vTopo.masterSlaveMapping[parentNode2.id] = parentNode1
+		}else{
+			vTopo.masterSlaveMapping[parentNode1.id] = null
+			vTopo.masterSlaveMapping[parentNode2.id] = null
 		}
+
+		self.activeAllLine(parentNode1 ,parentNode1)
+		self.activeAllLine(parentNode2 ,parentNode2)
 		
 	}
 
@@ -287,33 +300,27 @@ function CircleNode(vTopo ,opt){
 			let __line = findNode(tmp)
 			if (__line.startNode.id == circleNode.id && __line.endNode.id != orignNode.id){
 				let nextNode = __line.endNode
-				let parentNode = circleNode.isLinkNode?vTopo.findParentNode(circleNode):circleNode
-
-				let parentNodeArray = vTopo.findAllParentNodes(nextNode)
-
-				if (!vTopo.getParentStatus(parentNodeArray)){
-					nextNode.status = false
-					nextNode.__setStatusImg(false)
-				}else{
-					if (circleNode.isLinkNode){
-						circleNode.status = true
+				if (nextNode.category != 'contact'){
+					let parentNodeArray = vTopo.findAllParentNodes(nextNode)
+					if (!vTopo.getParentStatus(parentNodeArray)){
+						nextNode.status = false
+						nextNode.__setStatusImg(false)
+					}else{
+						if (circleNode.isLinkNode){
+							circleNode.status = true
+						}
 					}
+					__line.updateColor(circleNode.status)
+					this.activeAllLine(nextNode ,circleNode)
+					isLeaf = false
 				}
-				__line.updateColor(circleNode.status)
-				this.activeAllLine(nextNode ,circleNode)
-				isLeaf = false
 			}
 		})
-		if (isLeaf){
+		if (isLeaf && circleNode.category != 'contact'){
 			let parentNodeArray = vTopo.findAllParentNodes(circleNode)
 			let parentStatus = vTopo.getParentStatus(parentNodeArray)
 			circleNode.status = parentStatus
 			circleNode.__setStatusImg(parentStatus)
-
-
-			// let parentNode = vTopo.findParentNode(circleNode)
-			// circleNode.status = parentNode.status
-			// circleNode.__setStatusImg(circleNode.status)
 		}
 	}
 

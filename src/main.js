@@ -36,7 +36,7 @@ function VTopo(opt){
 			line : 
 			{
 				strokeColor : '#3d88e0',
-				lineWidth : 1
+				lineWidth : (opt.mode == 'view' ? 2 : 1)
 			},
 			text :
 			{
@@ -120,6 +120,11 @@ function VTopo(opt){
 		parentArray.forEach(tmp => {
 			if (tmp.status){
 				flag = true
+			}else{
+				let slave = this.masterSlaveMapping[tmp.id]
+				if (slave && slave.status){
+					flag = true
+				}
 			}
 		})
 		return flag
