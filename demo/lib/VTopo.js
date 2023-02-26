@@ -56,6 +56,16 @@
 	  };
 	}
 
+	function _typeof(obj) {
+	  "@babel/helpers - typeof";
+
+	  return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) {
+	    return typeof obj;
+	  } : function (obj) {
+	    return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+	  }, _typeof(obj);
+	}
+
 	function getElPosition(jqEl) {
 	  var __attr = jqEl.attr("transform");
 	  if (!__attr) return {
@@ -146,6 +156,15 @@
 	    top: parseInt(__array[5]) + parseInt(array_d[5])
 	  };
 	}
+	function isEmpty(obj) {
+	  if (obj == undefined) {
+	    return true;
+	  } else if (typeof obj == "string") {
+	    return !obj;
+	  } else if (_typeof(obj) == "object") {
+	    if (obj instanceof Array) return obj.length == 0;else return !obj;
+	  }
+	}
 	function __getLineEndNodePosition(jqEl) {
 	  var array_d = jqEl.attr("d").split(" ");
 	  var __attr = jqEl.attr("transform");
@@ -186,7 +205,7 @@
 	  });
 	}
 	var nodeContextMenuStr = "<div class=\"vtopo-context-menu\">\n\t\t\t\t\t\t<ul>\n\t\t\t\t\t\t\t<li data-oper=\"drawLine\">\u7ED8\u5236\u8FDE\u7EBF</li>\n\t\t\t\t\t\t\t<li data-oper=\"setImage\">\u8BBE\u7F6E\u56FE\u7247</li>\n\t\t\t\t\t\t\t<li data-oper=\"drawNodeText\">\u6DFB\u52A0\u6587\u5B57</li>\n\t\t\t\t\t\t\t<li data-oper=\"deleteNode\">\u5220\u9664\u5143\u7D20</li>\n\t\t\t\t\t\t</ul>\n\t\t\t\t\t</div>";
-	var lineContextMenuStr = "<div class=\"vtopo-context-menu\">\n\t\t\t\t\t\t<ul>\n\t\t\t\t\t\t\t<li data-oper=\"addTextInLine\" style=\"display:none\">\u6DFB\u52A0\u6587\u5B57</li>\n\t\t\t\t\t\t\t<li data-oper=\"deleteLine\">\u5220\u9664\u8FDE\u7EBF</li>\n\t\t\t\t\t\t</ul>\n\t\t\t\t\t</div>";
+	var lineContextMenuStr = "<div class=\"vtopo-context-menu\">\n\t\t\t\t\t\t<ul>\n\t\t\t\t\t\t\t<li data-oper=\"addTextInLine\">\u6DFB\u52A0\u6587\u5B57</li>\n\t\t\t\t\t\t\t<li data-oper=\"deleteLine\">\u5220\u9664\u8FDE\u7EBF</li>\n\t\t\t\t\t\t</ul>\n\t\t\t\t\t</div>";
 	var inflexNodeContextMenuStr = "<div class=\"vtopo-context-menu\">\n\t\t\t\t\t\t<ul>\n\t\t\t\t\t\t\t<li data-oper=\"deleteInflexNode\">\u5220\u9664\u5143\u7D20</li>\n\t\t\t\t\t\t</ul>\n\t\t\t\t\t</div>";
 	function __contentMenuShow(node, vTopo, e, opt, target_el) {
 	  $(".vtopo-context-menu").remove();
@@ -246,7 +265,7 @@
 	    "id": node_id,
 	    "data-type": "inflexPoint",
 	    "fill-opacity": 0.9,
-	    "fill": "pink",
+	    "fill": "#3d88e0",
 	    "transform": "matrix(1,0,0,1,0,0)"
 	  });
 	  this.jqNodeEl = $("#" + node_id);
@@ -363,7 +382,7 @@
 	          self.endNode = vTopo.createCircleNode({
 	            img: "linknode.png",
 	            isLinkNode: true,
-	            r: 10
+	            r: 7
 	          });
 	          var __martix = self.endNode.snapBaseNode.transform().localMatrix;
 	          __martix.e = pos.left - 10;
@@ -569,9 +588,9 @@
 	  };
 
 	  // 更新线段颜色
-	  this.updateColor = function () {
+	  this.updateColor = function (status) {
 	    var currentColor = self.snapNode.attr('stroke');
-	    if (currentColor == 'rgb(61, 136, 224)') {
+	    if (!status) {
 	      self.snapNode.attr('stroke', 'red');
 	    } else {
 	      self.snapNode.attr('stroke', vTopo.vTopoOpt.components.line.strokeColor);
@@ -691,9 +710,10 @@
 	*/
 
 	function CircleNode(vTopo, opt) {
-	  var _this2 = this;
+	  var _this = this;
 	  var self = this;
 	  this.type = 'circle';
+	  this.category = opt.category || '';
 	  this.isLinkNode = opt.isLinkNode || false;
 	  this.cx = vTopo.vTopoOpt.components.circle.cx;
 	  this.cy = vTopo.vTopoOpt.components.circle.cy;
@@ -720,7 +740,7 @@
 	  this.snapShadowImgNode = vTopo.snapSvg.paper.image("", 0, 0, this.r * 2, this.r * 2).attr("opacity", 1);
 	  this.snapBaseNode.add(this.snapImgNode);
 	  this.snapBaseNode.add(this.snapShadowImgNode);
-	  this.status;
+	  this.status = opt.status || true;
 	  this.removeCbf;
 	  this.getPosRange = function () {
 	    var pos = getElPosition(this.jqBaseNodeEl);
@@ -757,17 +777,25 @@
 	    this.snapImgNode.attr("xlink:href", vTopo.vTopoOpt.config.imgPath + imgPath);
 	    this.img = imgPath;
 	  };
+	  this.__setStatusImg = function (status) {
+	    if (_this.isLinkNode) return false;
+	    if (status) _this.setStatusImg('light_green.png');else _this.setStatusImg('light_grey.png');
+	  };
 	  this.setStatusImg = function (statusImgPath) {
 	    this.snapShadowImgNode.attr("xlink:href", vTopo.vTopoOpt.config.imgPath + statusImgPath);
 	    //this.snapShadowImgNode.attr("class" ,"vTopo-breath-light")
 	  };
 
+	  this.toggleStatus = function () {
+	    _this.status = !_this.status;
+	    _this.__setStatusImg(_this.status);
+	  };
 	  this.remove = function () {
-	    var _this = this;
+	    var _this2 = this;
 	    this.removeCbf && this.removeCbf(this.id);
 	    removeNode(this.id);
 	    vTopo.nodeArray = _.filter(vTopo.nodeArray, function (tmp) {
-	      return tmp.id != _this.id;
+	      return tmp.id != _this2.id;
 	    });
 	    this.jqBaseNodeEl.remove();
 	    /** 相关联的连线也需要删除 */
@@ -789,6 +817,9 @@
 	    if (!(vTopo.mode == "view" && self.isLinkNode)) {
 	      this.setImg(opt.img);
 	    }
+	    if (vTopo.mode == "view" && !self.isLinkNode && self.category != 'contact') {
+	      this.__setStatusImg(opt.status);
+	    }
 	    if (opt.transform) this.jqBaseNodeEl.attr("transform", opt.transform);
 	    if (opt.textArray && opt.textArray.length > 0) new textNode({
 	      parentNode: self,
@@ -800,6 +831,11 @@
 	      vTopo: vTopo,
 	      textArray: self.textArray
 	    });
+	    if (opt.category == 'contact') this.loadContactData(opt);
+	  };
+	  this.loadContactData = function (opt) {
+	    var img = opt.status ? 'contact_close.png' : 'contact.png';
+	    _this.setImg(img);
 	  };
 	  vTopo.nodeArray.push(this);
 	  if (vTopo.mode != "view") this.snapBaseNode.drag();
@@ -838,7 +874,22 @@
 	  // 左键点击事件
 	  this.jqBaseNodeEl.click(function (e) {
 	    if (vTopo.mode == 'view') {
-	      self.activeAllLine(self);
+	      if (self.category == 'contact') {
+	        _this.handleContactClick();
+	        return false;
+	      }
+	      var parentNodeArray = vTopo.findAllParentNodes(self);
+	      if (isEmpty(parentNodeArray)) {
+	        self.toggleStatus();
+	      } else {
+	        if (!vTopo.getParentStatus(parentNodeArray)) {
+	          self.status = false;
+	          _this.__setStatusImg(false);
+	        } else {
+	          if (self.isLinkNode) self.status = true;else self.toggleStatus();
+	        }
+	      }
+	      self.activeAllLine(self, self);
 	    } else {
 	      // 如果是单点
 	      if (!vTopo.ctrlDown) {
@@ -854,16 +905,53 @@
 	      self.selected();
 	    }
 	  });
-
-	  // 点击元件，关联的线都要跟着变化
-	  this.activeAllLine = function (circleNode) {
-	    circleNode.relationLinkNodeIdArray.forEach(function (tmp) {
+	  this.handleContactClick = function () {
+	    var routeNode1;
+	    var routeNode2;
+	    self.relationLinkNodeIdArray.forEach(function (tmp) {
 	      var __line = findNode(tmp);
-	      if (__line.startNode.id == circleNode.id) {
-	        __line.updateColor();
-	        _this2.activeAllLine(__line.endNode);
+	      var endNode = __line.endNode;
+	      if (!routeNode1) {
+	        routeNode1 = vTopo.findParentNode(vTopo.findAllParentNodes(endNode)[0]);
+	      } else {
+	        routeNode2 = vTopo.findParentNode(vTopo.findAllParentNodes(endNode)[0]);
 	      }
 	    });
+	    if (routeNode1.status && !routeNode2.status) ; else if (!routeNode1.status && routeNode2.status) ;
+	  };
+
+	  // 点击元件，关联的线都要跟着变化，避免回路
+	  this.activeAllLine = function (circleNode, orignNode) {
+	    var isLeaf = true;
+	    circleNode.relationLinkNodeIdArray.forEach(function (tmp) {
+	      var __line = findNode(tmp);
+	      if (__line.startNode.id == circleNode.id && __line.endNode.id != orignNode.id) {
+	        var nextNode = __line.endNode;
+	        var parentNode = circleNode.isLinkNode ? vTopo.findParentNode(circleNode) : circleNode;
+	        var parentNodeArray = vTopo.findAllParentNodes(nextNode);
+	        if (!vTopo.getParentStatus(parentNodeArray)) {
+	          nextNode.status = false;
+	          nextNode.__setStatusImg(false);
+	        } else {
+	          if (circleNode.isLinkNode) {
+	            circleNode.status = true;
+	          }
+	        }
+	        __line.updateColor(circleNode.status);
+	        _this.activeAllLine(nextNode, circleNode);
+	        isLeaf = false;
+	      }
+	    });
+	    if (isLeaf) {
+	      var parentNodeArray = vTopo.findAllParentNodes(circleNode);
+	      var parentStatus = vTopo.getParentStatus(parentNodeArray);
+	      circleNode.status = parentStatus;
+	      circleNode.__setStatusImg(parentStatus);
+
+	      // let parentNode = vTopo.findParentNode(circleNode)
+	      // circleNode.status = parentNode.status
+	      // circleNode.__setStatusImg(circleNode.status)
+	    }
 	  };
 
 	  // 移动
@@ -912,6 +1000,7 @@
 	  this.saveData = function () {
 	    var saveData = {};
 	    saveData.type = "circle";
+	    saveData.category = this.category;
 	    saveData.r = this.r;
 	    saveData.id = this.id;
 	    saveData.transform = this.jqBaseNodeEl.attr("transform");
@@ -1040,6 +1129,7 @@
 	styleInject(css_248z);
 
 	function VTopo(opt) {
+	  var _this = this;
 	  var self = this;
 	  this.uuid = new Date().getTime();
 
@@ -1048,12 +1138,15 @@
 
 	  // 当前选中node
 	  this.selectedNodeArray = [];
+
+	  // 主从关系表
+	  this.masterSlaveMapping = new Object();
 	  this.vTopoOpt = {
 	    components: {
 	      circle: {
 	        cx: 30,
 	        cy: 30,
-	        r: 30,
+	        r: 15,
 	        strokeWidth: 1
 	      },
 	      line: {
@@ -1068,7 +1161,7 @@
 	      inflexPoint: {
 	        cx: 0,
 	        cy: 0,
-	        r: 6
+	        r: 5
 	      }
 	    },
 	    config: {
@@ -1114,6 +1207,50 @@
 	  this.findNode = function (nodeId) {
 	    return findNode(nodeId);
 	  };
+	  this.findRootNode = function () {};
+	  this.findParentNode = function (node) {
+	    var parentNode;
+	    node.relationLinkNodeIdArray.forEach(function (tmp) {
+	      var __line = _this.findNode(tmp);
+	      if (__line.endNode.id == node.id) {
+	        if (__line.startNode.isLinkNode) {
+	          parentNode = _this.findParentNode(__line.startNode);
+	        } else {
+	          parentNode = __line.startNode;
+	        }
+	      }
+	    });
+	    return parentNode;
+	  };
+
+	  // 并联
+	  this.getParentStatus = function (parentArray) {
+	    var flag = false;
+	    parentArray.forEach(function (tmp) {
+	      if (tmp.status) {
+	        flag = true;
+	      }
+	    });
+	    return flag;
+	  };
+	  this.findAllParentNodes = function (node) {
+	    var parentNodeArray = [];
+	    node.relationLinkNodeIdArray.forEach(function (tmp) {
+	      var __line = _this.findNode(tmp);
+	      var parentNode;
+	      if (__line.endNode.id == node.id) {
+	        if (__line.startNode.isLinkNode) {
+	          parentNode = _this.findParentNode(__line.startNode);
+	        } else {
+	          parentNode = __line.startNode;
+	        }
+	        parentNodeArray.push(parentNode);
+	      }
+	    });
+	    return _.filter(parentNodeArray, function (tmp) {
+	      return tmp.category != 'contact';
+	    });
+	  };
 	  this.handleMove = function (key) {
 	    if (self.selectedNodeArray.length == 0) return false;
 	    self.selectedNodeArray[0].handleMove(key);
@@ -1126,7 +1263,7 @@
 	    var martix = firstNode.snapBaseNode.transform().localMatrix;
 	    self.selectedNodeArray.forEach(function (node) {
 	      var __martix = node.snapBaseNode.transform().localMatrix;
-	      __martix[type] = martix[type];
+	      __martix[type] = martix[type] + (firstNode.r - node.r);
 	      node.snapBaseNode.transform(__martix);
 	      node.relationLinkNodeIdArray.forEach(function (tmp) {
 	        findNode(tmp).sideToSideLink();

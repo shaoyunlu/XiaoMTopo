@@ -19,6 +19,9 @@ function VTopo(opt){
 	// 当前选中node
 	this.selectedNodeArray = []
 
+	// 主从关系表
+	this.masterSlaveMapping = new Object()
+
 
 	this.vTopoOpt = {
 		components : 
@@ -27,7 +30,7 @@ function VTopo(opt){
 			{
 				cx : 30,
 				cy : 30,
-				r : 30,
+				r : 15,
 				strokeWidth : 1
 			},
 			line : 
@@ -45,7 +48,7 @@ function VTopo(opt){
 			{
 				cx : 0,
 				cy : 0,
-				r : 6
+				r : 5
 			}
 		},
 		config : 
@@ -92,6 +95,53 @@ function VTopo(opt){
 		return findNode(nodeId)
 	}
 
+	this.findRootNode = ()=>{
+		
+	}
+
+	this.findParentNode = (node)=>{
+		let parentNode
+		node.relationLinkNodeIdArray.forEach(tmp =>{
+			let __line = this.findNode(tmp)
+			if (__line.endNode.id == node.id){
+				if (__line.startNode.isLinkNode){
+					parentNode = this.findParentNode(__line.startNode)
+				}else{
+					parentNode = __line.startNode
+				}
+			}
+		})
+		return parentNode
+	}
+
+	// 并联
+	this.getParentStatus = (parentArray)=>{
+		let flag = false
+		parentArray.forEach(tmp => {
+			if (tmp.status){
+				flag = true
+			}
+		})
+		return flag
+	}
+
+	this.findAllParentNodes = (node)=>{
+		let parentNodeArray = []
+		node.relationLinkNodeIdArray.forEach(tmp =>{
+			let __line = this.findNode(tmp)
+			let parentNode
+			if (__line.endNode.id == node.id){
+				if (__line.startNode.isLinkNode){
+					parentNode = this.findParentNode(__line.startNode)
+				}else{
+					parentNode = __line.startNode
+				}
+				parentNodeArray.push(parentNode)
+			}
+		})
+		return _.filter(parentNodeArray ,tmp=>{return tmp.category != 'contact'})
+	}
+
 	this.handleMove = (key)=>{
 		if (self.selectedNodeArray.length == 0)
 			return false
@@ -106,7 +156,7 @@ function VTopo(opt){
 		let martix = firstNode.snapBaseNode.transform().localMatrix
 		self.selectedNodeArray.forEach((node)=>{
 			let __martix = node.snapBaseNode.transform().localMatrix
-			__martix[type] = martix[type]
+			__martix[type] = martix[type] + (  firstNode.r - node.r)
 			node.snapBaseNode.transform(__martix)
 			node.relationLinkNodeIdArray.forEach(tmp =>{
 				findNode(tmp).sideToSideLink()

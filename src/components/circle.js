@@ -3,7 +3,7 @@ import LineNode from './line'
 import TextNode from './text'
 import {removeNode ,findNode} from '../core/nodePool'
 import {rightClickInit} from '../events/click'
-import {getElPosition,getEventOffSetX ,getEventOffSetY ,splitText} from '../utils/index'
+import {getElPosition ,splitText ,isEmpty} from '../utils/index'
 
 /** 
 	opt : id
@@ -15,6 +15,7 @@ import {getElPosition,getEventOffSetX ,getEventOffSetY ,splitText} from '../util
 function CircleNode(vTopo ,opt){
 	var self = this
 	this.type = 'circle'
+	this.category = opt.category || ''
 	this.isLinkNode = opt.isLinkNode || false
 
 	this.cx = vTopo.vTopoOpt.components.circle.cx
@@ -23,11 +24,8 @@ function CircleNode(vTopo ,opt){
 
 	// 关联的LineNodeArray
 	this.relationLinkNodeIdArray = []
-
 	this.textArray = []
-
 	this.img = opt.img
-
 	this.textNode
 
 	this.snapBaseNodeCreate(vTopo ,opt)
@@ -57,7 +55,7 @@ function CircleNode(vTopo ,opt){
 	this.snapBaseNode.add(this.snapImgNode)
 	this.snapBaseNode.add(this.snapShadowImgNode)
 
-	this.status
+	this.status = opt.status || true
 
 	this.removeCbf
 
@@ -93,9 +91,23 @@ function CircleNode(vTopo ,opt){
 		this.img = imgPath
 	}
 
+	this.__setStatusImg = (status)=>{
+		if (this.isLinkNode)
+			return false
+		if (status)
+			this.setStatusImg('light_green.png')
+		else
+			this.setStatusImg('light_grey.png')
+	}
+
 	this.setStatusImg = function (statusImgPath){
 		this.snapShadowImgNode.attr("xlink:href" ,vTopo.vTopoOpt.config.imgPath+statusImgPath)
 		//this.snapShadowImgNode.attr("class" ,"vTopo-breath-light")
+	}
+
+	this.toggleStatus = ()=>{
+		this.status = !this.status
+		this.__setStatusImg(this.status)
 	}
 
 	this.remove = function (){
@@ -128,6 +140,9 @@ function CircleNode(vTopo ,opt){
 		if ( !(vTopo.mode == "view" && self.isLinkNode) ){
 			this.setImg(opt.img)
 		}
+		if (vTopo.mode == "view" && !self.isLinkNode && self.category != 'contact'){
+			this.__setStatusImg(opt.status)
+		}
 		if (opt.transform)
 			this.jqBaseNodeEl.attr("transform" ,opt.transform)
 		if (opt.textArray && opt.textArray.length > 0)
@@ -135,6 +150,13 @@ function CircleNode(vTopo ,opt){
 		if (opt.textStr)
 			self.textArray = splitText(opt.textStr ,vTopo),
 			new TextNode({parentNode:self ,vTopo:vTopo ,textArray:self.textArray})
+		if (opt.category == 'contact')
+			this.loadContactData(opt)
+	}
+
+	this.loadContactData = (opt)=>{
+		let img = opt.status ? 'contact_close.png' : 'contact.png'
+		this.setImg(img)
 	}
 
 	vTopo.nodeArray.push(this)
@@ -182,9 +204,32 @@ function CircleNode(vTopo ,opt){
 
 	// 左键点击事件
 	this.jqBaseNodeEl.click((e)=>{
-
 		if (vTopo.mode == 'view'){
-			self.activeAllLine(self)
+			if (self.category == 'contact'){
+				this.handleContactClick()
+				return false
+			}
+			
+			let parentNodeArray = vTopo.findAllParentNodes(self)
+			if (isEmpty(parentNodeArray)){
+				self.toggleStatus()
+			}
+			else
+			{
+				if (!vTopo.getParentStatus(parentNodeArray))
+				{
+					self.status = false
+					this.__setStatusImg(false)
+				}
+				else
+				{
+					if (self.isLinkNode)
+						self.status = true
+					else
+						self.toggleStatus()
+				}
+			}
+			self.activeAllLine(self ,self)
 		}else{
 			// 如果是单点
 			if (!vTopo.ctrlDown){
@@ -201,16 +246,75 @@ function CircleNode(vTopo ,opt){
 		}
 	})
 
-	// 点击元件，关联的线都要跟着变化
-	this.activeAllLine = (circleNode)=>{
+
+	this.handleContactClick = ()=>{
+		let parentNode1
+		let parentNode2
+		let routeNode1
+		let routeNode2
+		self.relationLinkNodeIdArray.forEach(tmp=>{
+			let __line = findNode(tmp)
+			let endNode = __line.endNode
+			if (!routeNode1){
+				parentNode1 = endNode
+				routeNode1 = vTopo.findParentNode(vTopo.findAllParentNodes(endNode)[0])
+			}else{
+				parentNode2 = endNode
+				routeNode2 = vTopo.findParentNode(vTopo.findAllParentNodes(endNode)[0])
+			}
+		})
+
+		let startNode
+		let endNode
+		let flag = false
+
+		if (routeNode1.status && !routeNode2.status){
+			startNode = parentNode1
+			endNode = parentNode2
+			flag = true
+		}else if (!routeNode1.status && routeNode2.status){
+			startNode = parentNode2
+			endNode = parentNode1
+			flag = true
+		}
+		
+	}
+
+	// 点击元件，关联的线都要跟着变化，避免回路
+	this.activeAllLine = (circleNode ,orignNode)=>{
+		let isLeaf = true
 		circleNode.relationLinkNodeIdArray.forEach(tmp =>{
 			let __line = findNode(tmp)
-			if (__line.startNode.id == circleNode.id){
-				__line.updateColor()
-				this.activeAllLine(__line.endNode)
+			if (__line.startNode.id == circleNode.id && __line.endNode.id != orignNode.id){
+				let nextNode = __line.endNode
+				let parentNode = circleNode.isLinkNode?vTopo.findParentNode(circleNode):circleNode
+
+				let parentNodeArray = vTopo.findAllParentNodes(nextNode)
+
+				if (!vTopo.getParentStatus(parentNodeArray)){
+					nextNode.status = false
+					nextNode.__setStatusImg(false)
+				}else{
+					if (circleNode.isLinkNode){
+						circleNode.status = true
+					}
+				}
+				__line.updateColor(circleNode.status)
+				this.activeAllLine(nextNode ,circleNode)
+				isLeaf = false
 			}
-			
 		})
+		if (isLeaf){
+			let parentNodeArray = vTopo.findAllParentNodes(circleNode)
+			let parentStatus = vTopo.getParentStatus(parentNodeArray)
+			circleNode.status = parentStatus
+			circleNode.__setStatusImg(parentStatus)
+
+
+			// let parentNode = vTopo.findParentNode(circleNode)
+			// circleNode.status = parentNode.status
+			// circleNode.__setStatusImg(circleNode.status)
+		}
 	}
 
 	// 移动
@@ -259,6 +363,7 @@ function CircleNode(vTopo ,opt){
 	this.saveData = function (){
 		let saveData = {}
 		saveData.type = "circle"
+		saveData.category = this.category
 		saveData.r = this.r
 		saveData.id = this.id
 		saveData.transform = this.jqBaseNodeEl.attr("transform")

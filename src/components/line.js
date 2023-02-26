@@ -71,7 +71,7 @@ function LineNode(vTopo ,opt){
 				if (!(endNode = lineIsInNode(self.jqNodeEl ,vTopo))){
 					//self.remove()
 					let pos = getLineEndNodePosition(self.jqNodeEl)
-					self.endNode = vTopo.createCircleNode({img:"linknode.png" ,isLinkNode:true ,r:10})
+					self.endNode = vTopo.createCircleNode({img:"linknode.png" ,isLinkNode:true ,r:7})
 					let __martix = self.endNode.snapBaseNode.transform().localMatrix
 					__martix.e = pos.left - 10
 					__martix.f = pos.top - 10
@@ -301,9 +301,9 @@ function LineNode(vTopo ,opt){
 	}
 
 	// 更新线段颜色
-	this.updateColor = ()=>{
+	this.updateColor = (status)=>{
 		let currentColor = self.snapNode.attr('stroke')
-		if (currentColor == 'rgb(61, 136, 224)'){
+		if (!status){
 			self.snapNode.attr('stroke' ,'red')
 		}else{
 			self.snapNode.attr('stroke' ,vTopo.vTopoOpt.components.line.strokeColor)

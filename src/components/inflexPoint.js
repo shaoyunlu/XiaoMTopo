@@ -28,7 +28,7 @@ function inflexPoint(opt){
 								"id" : node_id,
 								"data-type" : "inflexPoint",
 								"fill-opacity" : 0.9,
-								"fill" : "pink",
+								"fill" : "#3d88e0",
 								"transform" : "matrix(1,0,0,1,0,0)"
 							  })
 	this.jqNodeEl = $("#" + node_id)

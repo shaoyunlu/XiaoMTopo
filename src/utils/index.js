@@ -116,6 +116,21 @@ export function getLineEndNodePosition(jqEl){
 			}
 }
 
+export function isEmpty(obj){
+    if (obj == undefined){
+        return true
+    }
+    else if(typeof obj == "string"){
+        return !obj
+    }
+    else if(typeof obj == "object"){
+        if (obj instanceof Array)
+            return obj.length == 0
+        else
+            return !obj
+    }
+}
+
 function __getLineEndNodePosition(jqEl){
 	var array_d = jqEl.attr("d").split(" ")
 	var __attr = jqEl.attr("transform")

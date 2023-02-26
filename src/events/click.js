@@ -30,7 +30,7 @@ var nodeContextMenuStr = `<div class="vtopo-context-menu">
 					</div>`
 var lineContextMenuStr = `<div class="vtopo-context-menu">
 						<ul>
-							<li data-oper="addTextInLine" style="display:none">添加文字</li>
+							<li data-oper="addTextInLine">添加文字</li>
 							<li data-oper="deleteLine">删除连线</li>
 						</ul>
 					</div>`

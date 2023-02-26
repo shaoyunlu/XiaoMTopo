@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<meta charset="utf-8">
+	<meta name="format-detection" content="telephone=no">
+	<meta name="renderer" content="webkit">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+	<script type="text/javascript" src="lib/jquery.1.10.2.js"></script>
+	<script type="text/javascript" src="lib/snap.js"></script>
+	<script type="text/javascript" src="lib/underscore.js"></script>
+	<script type="text/javascript" src="lib/VTopo.js"></script>
+</head>
+	<style>
+		html,body{padding:0;margin:0;width:100%;height:100%;overflow:hidden;}
+		body{
+			background:url('img/bg.jpg')
+		}
+		html,body,*{box-sizing: border-box;}
+		ul{margin:0;padding:0;font-size: 12px;transition: all 0.3s;}
+		li{list-style:none}
+		li:hover{color:brown}
+		.test{width:100%;height:100%;display:flex;flex-direction: column;}
+		.head{position: fixed;right:0;top:0;
+				background-color: #fff;z-index: 9999;}
+		.head ul{display:flex;}
+		.head li{cursor:pointer;margin-right:20px;}
+		#toolsUl li{margin : 10px}
+		.content{position: relative; flex:1;}
+		.content svg{width:100%;height:100%;background:url('img/grid.png');}
+		#load{position: relative;}
+		#load input{cursor: pointer;position: absolute;left:0;top:0;height: 50px;width: 40px;opacity: 0;}
+	</style>
+<body>
+	
+	<div class="head">
+		<ul id="toolsUl">
+			<li id="node">子节点</li>
+			<li id="powerNode">电站</li>
+			<li id="roomNode">房间</li>
+			<li id="edrNode">配电室</li>
+			<li id="hvrNode">高压室</li>
+			<li id="lvrNode">低压室</li>
+			<li id="vrNode">稳压器</li>
+			<li id="contactNode">连接</li>
+			<!-- 
+			<li id="zbNode" style="margin-left:20px;">主备</li>
+			-->
+			<li> | </li>
+
+			<li id="tbAlign">上下对齐</li>
+			<li id="lrAlign">左右对齐</li>
+			<li id="save" style="margin-left:100px;">保存</li>
+			<li id="load">加载<input type="file" id="loadFile"></li>
+			<li id="export">导出</li>
+			<li id="clear">清空</li>
+		</ul>
+	</div>
+
+	<div class="test">
+		<div style="display:flex;flex-direction:row" class="content">
+			<div style="width:1px"></div>
+			<div style="flex:1">
+				<svg id="svg" ></svg>
+			</div>
+		</div>
+	</div>
+
+	
+</body>
+<script>
+	var vTopo = new VTopo({
+		jqSvgEl : $("#svg"),
+		//mode : "view"
+	})
+
+	const r = 15
+
+	document.getElementById('powerNode').addEventListener('click' ,()=>{
+		vTopo.createCircleNode({img:"power.png" ,r:r})
+	})
+
+	document.getElementById('roomNode').addEventListener('click' ,()=>{
+		vTopo.createCircleNode({img:"room.png" ,r:r})
+	})
+
+	document.getElementById('edrNode').addEventListener('click' ,()=>{
+		vTopo.createCircleNode({img:"edr.png" ,r:r})
+	})
+
+	document.getElementById('hvrNode').addEventListener('click' ,()=>{
+		vTopo.createCircleNode({img:"hvr.png" ,r:r})
+	})
+
+	document.getElementById('lvrNode').addEventListener('click' ,()=>{
+		vTopo.createCircleNode({img:"lvr.png" ,r:r})
+	})
+
+	document.getElementById('vrNode').addEventListener('click' ,()=>{
+		vTopo.createCircleNode({img:"vr.png" ,r:r})
+	})
+
+	document.getElementById('node').addEventListener('click' ,()=>{
+		vTopo.createCircleNode({img:"node.png" ,r:r})
+	})
+
+	document.getElementById('contactNode').addEventListener('click' ,()=>{
+		vTopo.createCircleNode({img:"contact.png" ,r:r ,category:'contact' ,status:false})
+	})
+
+	// document.getElementById('zbNode').addEventListener('click' ,()=>{
+	// 	vTopo.masterSlave()
+	// })
+
+	document.getElementById('tbAlign').addEventListener('click' ,()=>{
+		vTopo.align('f')
+	})
+
+	document.getElementById('lrAlign').addEventListener('click' ,()=>{
+		vTopo.align('e')
+	})
+
+	var file = document.getElementById('loadFile');
+	file.addEventListener('change' ,(e)=>{
+		var files = e.target.files;
+    	var file0 = files[0];
+		var fileReader = new FileReader();
+		fileReader.readAsText(file0,'utf-8');
+
+		fileReader.onload = ()=>{
+			vTopo.loadData(JSON.parse(fileReader.result))
+		}
+	})
+
+	document.getElementById('export').addEventListener('click' ,()=>{
+		var __data = vTopo.saveData()
+		var blob = new Blob([__data], { type: "text/plain;charset=utf-8" });
+		var url = URL.createObjectURL(blob);
+		var a = document.createElement("a");
+		a.href = url;
+		a.download = "example.txt";
+		// 将a标签添加到文档中
+		document.body.appendChild(a);
+		a.click();
+		URL.revokeObjectURL(url);
+		a.remove()
+	})
+
+	document.getElementById('save').addEventListener('click' ,()=>{
+		var __data = vTopo.saveData()
+		localStorage.vTopo_saveData = __data
+	})
+
+	document.getElementById('clear').addEventListener('click' ,()=>{
+		vTopo.clear()
+	})
+
+	vTopo.loadData(JSON.parse(localStorage.vTopo_saveData))
+
+</script>
+</html>
