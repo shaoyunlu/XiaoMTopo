@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title></title>
+	<title>电力系统-编辑</title>
 	<meta charset="utf-8">
 	<meta name="format-detection" content="telephone=no">
 	<meta name="renderer" content="webkit">
@@ -35,14 +35,15 @@
 	
 	<div class="head">
 		<ul id="toolsUl">
-			<li id="node">子节点</li>
+			<li id="routeNode">线路</li>
 			<li id="powerNode">电站</li>
 			<li id="roomNode">房间</li>
 			<li id="edrNode">配电室</li>
 			<li id="hvrNode">高压室</li>
 			<li id="lvrNode">低压室</li>
-			<li id="vrNode">稳压器</li>
+			<li id="vrNode">变压器</li>
 			<li id="contactNode">连接</li>
+			<li id="node">子节点</li>
 			<!-- 
 			<li id="zbNode" style="margin-left:20px;">主备</li>
 			-->
@@ -74,34 +75,39 @@
 		//mode : "view"
 	})
 
-	const r = 15
+	const r = 20
+
+	document.getElementById('routeNode').addEventListener('click' ,()=>{
+		vTopo.createCircleNode({img:"route.png" ,r:r ,status : true ,category:'route'})
+	})
+
 
 	document.getElementById('powerNode').addEventListener('click' ,()=>{
-		vTopo.createCircleNode({img:"power.png" ,r:r})
+		vTopo.createCircleNode({img:"power.png" ,r:r ,status : true ,category:'power'})
 	})
 
 	document.getElementById('roomNode').addEventListener('click' ,()=>{
-		vTopo.createCircleNode({img:"room.png" ,r:r})
+		vTopo.createCircleNode({img:"room.png" ,r:r ,status : true ,category:'room'})
 	})
 
 	document.getElementById('edrNode').addEventListener('click' ,()=>{
-		vTopo.createCircleNode({img:"edr.png" ,r:r})
+		vTopo.createCircleNode({img:"edr.png" ,r:r ,status : true ,category:'edr'})
 	})
 
 	document.getElementById('hvrNode').addEventListener('click' ,()=>{
-		vTopo.createCircleNode({img:"hvr.png" ,r:r})
+		vTopo.createCircleNode({img:"hvr.png" ,r:r ,status : true ,category:'hvr'})
 	})
 
 	document.getElementById('lvrNode').addEventListener('click' ,()=>{
-		vTopo.createCircleNode({img:"lvr.png" ,r:r})
+		vTopo.createCircleNode({img:"lvr.png" ,r:r ,status : true ,category:'lvr'})
 	})
 
 	document.getElementById('vrNode').addEventListener('click' ,()=>{
-		vTopo.createCircleNode({img:"vr.png" ,r:r})
+		vTopo.createCircleNode({img:"vr.png" ,r:12 ,status : true ,category:'vr'})
 	})
 
 	document.getElementById('node').addEventListener('click' ,()=>{
-		vTopo.createCircleNode({img:"node.png" ,r:r})
+		vTopo.createCircleNode({img:"node.png" ,r:r ,status : true ,category:'node'})
 	})
 
 	document.getElementById('contactNode').addEventListener('click' ,()=>{
