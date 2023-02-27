@@ -52,8 +52,12 @@ function __contentMenuShow(node ,vTopo ,e ,opt ,target_el)
 		__el = $(lineContextMenuStr)
 	else if(node.type == "inflexPoint")
 		__el = $(inflexNodeContextMenuStr)
-	__el.css("left" ,getEventOffSetX(e ,vTopo) + vTopo.jqWrapperElOffset.left + "px")
-	__el.css("top" ,getEventOffSetY(e ,vTopo) + "px")
+
+	let eventOffSetX = getEventOffSetX(e ,vTopo) + vTopo.jqWrapperElOffset.left
+	let eventOffSetY = getEventOffSetY(e ,vTopo)
+
+	__el.css("left" ,eventOffSetX + 'px')
+	__el.css("top" ,eventOffSetY + 'px')
 	vTopo.jqWrapperEl.append(__el)
 	__el.bind('click' ,function (e){
 		e.preventDefault();
@@ -66,14 +70,14 @@ function __contentMenuShow(node ,vTopo ,e ,opt ,target_el)
 			node.remove()
 		else if ( __oper == "drawNodeText")
 			dialogInput({
-				pos : {left : getEventOffSetX(e ,vTopo) + "px" ,"top" : getEventOffSetY(e ,vTopo) + "px"},
+				pos : {left : eventOffSetX + 15 + 'px' ,"top" : eventOffSetY + 15 + 'px'},
 				enterCbf : function (textArray){
 					opt.createTextNode({parentNode:node ,vTopo:vTopo ,textArray:textArray})
 				}
 			} ,vTopo)
 		else if ( __oper == "setImage")
 			dialogInput({
-				pos : {left : getEventOffSetX(e ,vTopo) + "px" ,"top" : getEventOffSetY(e ,vTopo) + "px"},
+				pos : {left : eventOffSetX + 15 + 'px' ,"top" : eventOffSetY + 15 + 'px'},
 				enterCbf : function (textArray){
 					node.setImg(textArray[0].text + '.png')
 				}

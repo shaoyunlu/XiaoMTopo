@@ -122,16 +122,7 @@
 	}
 	function splitText(textStr, vTopo) {
 	  var textArray = [];
-	  var res = [];
-	  var start_pos = 0;
-	  var digit = 1;
-	  var count = 0;
-	  for (var i = 0; i < textStr.length; i++) {
-	    if (textStr.charCodeAt(i) > 127 || textStr.charCodeAt(i) == 94) count += 2;else count++;
-	    if (count == 110 || count == 120) res.push(textStr.substr(start_pos, digit)), count = 0, digit = 1, start_pos = i + 1;else digit++;
-	  }
-	  var res_str = res.join("");
-	  if (res_str.length != textStr.length) res.push(textStr.substr(res_str.length));
+	  var res = textStr.split("|");
 	  res.forEach(function (tmp) {
 	    var __t = $('<span>' + tmp + '</span>').appendTo(vTopo.jqTextSplit);
 	    textArray.push({
@@ -179,6 +170,11 @@
 	  var pos = opt.pos;
 	  var dialogEl = $("<div class=\"vTopo-dialog\">\n\t\t\t\t\t\t<input />\n\t\t\t\t\t\t<span style=\"cursor:pointer\">\u63D0\u4EA4</span>\n\t\t\t\t\t</div>");
 	  $('body').append(dialogEl);
+
+	  // 禁止事件穿透
+	  dialogEl[0].addEventListener('mousemove', function (e) {
+	    e.stopPropagation();
+	  });
 	  dialogEl.css({
 	    "left": pos.left,
 	    "top": pos.top
@@ -212,8 +208,10 @@
 	  var pos = getElPosition(target_el);
 	  var __el;
 	  if (node.type == "circle") __el = $(nodeContextMenuStr);else if (node.type == "line") __el = $(lineContextMenuStr);else if (node.type == "inflexPoint") __el = $(inflexNodeContextMenuStr);
-	  __el.css("left", getEventOffSetX(e, vTopo) + vTopo.jqWrapperElOffset.left + "px");
-	  __el.css("top", getEventOffSetY(e, vTopo) + "px");
+	  var eventOffSetX = getEventOffSetX(e, vTopo) + vTopo.jqWrapperElOffset.left;
+	  var eventOffSetY = getEventOffSetY(e, vTopo);
+	  __el.css("left", eventOffSetX + 'px');
+	  __el.css("top", eventOffSetY + 'px');
 	  vTopo.jqWrapperEl.append(__el);
 	  __el.bind('click', function (e) {
 	    e.preventDefault();
@@ -224,8 +222,8 @@
 	    var __oper = $(this).attr("data-oper");
 	    if (__oper == "deleteNode") node.remove();else if (__oper == "drawNodeText") dialogInput({
 	      pos: {
-	        left: getEventOffSetX(e, vTopo) + "px",
-	        "top": getEventOffSetY(e, vTopo) + "px"
+	        left: eventOffSetX + 15 + 'px',
+	        "top": eventOffSetY + 15 + 'px'
 	      },
 	      enterCbf: function enterCbf(textArray) {
 	        opt.createTextNode({
@@ -236,8 +234,8 @@
 	      }
 	    }, vTopo);else if (__oper == "setImage") dialogInput({
 	      pos: {
-	        left: getEventOffSetX(e, vTopo) + "px",
-	        "top": getEventOffSetY(e, vTopo) + "px"
+	        left: eventOffSetX + 15 + 'px',
+	        "top": eventOffSetY + 15 + 'px'
 	      },
 	      enterCbf: function enterCbf(textArray) {
 	        node.setImg(textArray[0].text + '.png');
@@ -1148,7 +1146,7 @@
 	  }
 	}
 
-	var css_248z = ".vTopo tspan {\n  font-size: 12px;\n  -moz-user-select: none;\n  -webkit-user-select: none;\n  user-select: none;\n}\n.vtopo-context-menu {\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 150px;\n  background-color: rgba(0, 0, 0, 0.75);\n  color: #fff;\n}\n.vtopo-context-menu ul li {\n  cursor: pointer;\n  text-align: center;\n  padding: 10px 5px;\n}\n.vTopo-dialog {\n  position: absolute;\n  left: 50%;\n  top: 50%;\n  padding: 10px;\n  border: 1px solid #eee;\n  font-size: 12px;\n  color: #fff;\n}\n.vTopo-guideline-x {\n  position: absolute;\n  width: 100%;\n  height: 1px;\n  background-color: #3d88e0;\n}\n.vTopo-guideline-y {\n  position: absolute;\n  top: 0;\n  left: -9999px;\n  width: 1px;\n  height: 100%;\n  background-color: #3d88e0;\n}\n.vTopo-text-split {\n  font-size: 12px;\n}\n.vTopo-breath-light {\n  opacity: 0.3;\n  animation-name: breath;\n  /* 动画名称 */\n  animation-duration: 3s;\n  /* 动画时长3秒 */\n  animation-timing-function: ease-in-out;\n  /* 动画速度曲线：以低速开始和结束 */\n  animation-iteration-count: infinite;\n  /* 播放次数：无限 */\n  /* Safari and Chrome */\n  -webkit-animation-name: breath;\n  /* 动画名称 */\n  -webkit-animation-duration: 3s;\n  /* 动画时长3秒 */\n  -webkit-animation-timing-function: ease-in-out;\n  /* 动画速度曲线：以低速开始和结束 */\n  -webkit-animation-iteration-count: infinite;\n  /* 播放次数：无限 */\n}\n@keyframes breath {\n  from {\n    opacity: 0.3;\n  }\n  /* 动画开始时的不透明度 */\n  50% {\n    opacity: 1;\n  }\n  /* 动画50% 时的不透明度 */\n  to {\n    opacity: 0.3;\n  }\n  /* 动画结束时的不透明度 */\n}\n@-webkit-keyframes breath {\n  from {\n    opacity: 0.3;\n  }\n  /* 动画开始时的不透明度 */\n  50% {\n    opacity: 1;\n  }\n  /* 动画50% 时的不透明度 */\n  to {\n    opacity: 0.3;\n  }\n  /* 动画结束时的不透明度 */\n}\n";
+	var css_248z = ".vTopo tspan {\n  font-size: 12px;\n  -moz-user-select: none;\n  -webkit-user-select: none;\n  user-select: none;\n}\n.vtopo-context-menu {\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 150px;\n  background-color: rgba(0, 0, 0, 0.75);\n  color: #fff;\n}\n.vtopo-context-menu ul li {\n  cursor: pointer;\n  text-align: center;\n  padding: 10px 5px;\n}\n.vTopo-dialog {\n  position: absolute;\n  left: 50%;\n  top: 50%;\n  padding: 10px;\n  border: 1px solid #aaa;\n  font-size: 12px;\n  color: #fff;\n}\n.vTopo-dialog input {\n  outline: 0;\n  padding: 1px 8px;\n  width: 150px;\n}\n.vTopo-guideline-x {\n  position: absolute;\n  width: 100%;\n  height: 1px;\n  background-color: #3d88e0;\n}\n.vTopo-guideline-y {\n  position: absolute;\n  top: 0;\n  left: -9999px;\n  width: 1px;\n  height: 100%;\n  background-color: #3d88e0;\n}\n.vTopo-text-split {\n  font-size: 12px;\n}\n.vTopo-breath-light {\n  opacity: 0.3;\n  animation-name: breath;\n  /* 动画名称 */\n  animation-duration: 3s;\n  /* 动画时长3秒 */\n  animation-timing-function: ease-in-out;\n  /* 动画速度曲线：以低速开始和结束 */\n  animation-iteration-count: infinite;\n  /* 播放次数：无限 */\n  /* Safari and Chrome */\n  -webkit-animation-name: breath;\n  /* 动画名称 */\n  -webkit-animation-duration: 3s;\n  /* 动画时长3秒 */\n  -webkit-animation-timing-function: ease-in-out;\n  /* 动画速度曲线：以低速开始和结束 */\n  -webkit-animation-iteration-count: infinite;\n  /* 播放次数：无限 */\n}\n@keyframes breath {\n  from {\n    opacity: 0.3;\n  }\n  /* 动画开始时的不透明度 */\n  50% {\n    opacity: 1;\n  }\n  /* 动画50% 时的不透明度 */\n  to {\n    opacity: 0.3;\n  }\n  /* 动画结束时的不透明度 */\n}\n@-webkit-keyframes breath {\n  from {\n    opacity: 0.3;\n  }\n  /* 动画开始时的不透明度 */\n  50% {\n    opacity: 1;\n  }\n  /* 动画50% 时的不透明度 */\n  to {\n    opacity: 0.3;\n  }\n  /* 动画结束时的不透明度 */\n}\n";
 	styleInject(css_248z);
 
 	function VTopo(opt) {

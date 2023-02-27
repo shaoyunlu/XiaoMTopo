@@ -74,6 +74,18 @@ export function getSpaceIndexFromLine(dstX ,dstY , lineNode){
 export function splitText(textStr ,vTopo)
 {
 	var textArray = []
+	var res = textStr.split("|")
+
+	res.forEach(tmp => {
+		let __t = $('<span>'+tmp+'</span>').appendTo(vTopo.jqTextSplit)
+		textArray.push({text:tmp ,width:__t.width()})
+	})
+	return textArray
+}
+
+export function splitText_bak(textStr ,vTopo)
+{
+	var textArray = []
 	var res = []
 	var start_pos = 0
 	var digit = 1
