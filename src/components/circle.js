@@ -213,6 +213,7 @@ function CircleNode(vTopo ,opt){
 
 	// 左键点击事件
 	this.jqBaseNodeEl.click((e)=>{
+
 		if (vTopo.mode == 'view'){
 			if (self.category == 'contact'){
 				this.handleContactClick()
@@ -322,6 +323,19 @@ function CircleNode(vTopo ,opt){
 			circleNode.status = parentStatus
 			circleNode.__setStatusImg(parentStatus)
 		}
+	}
+
+	this.activeAllLineByRoot = (circleNode ,orignNode)=>{
+		circleNode.relationLinkNodeIdArray.forEach(tmp =>{
+			let __line = findNode(tmp)
+			if (__line.startNode.id == circleNode.id && __line.endNode.id != orignNode.id){
+				let nextNode = __line.endNode
+				nextNode.status = circleNode.status
+				nextNode.__setStatusImg(circleNode.status)
+				__line.updateColor(circleNode.status)
+				this.activeAllLineByRoot(nextNode ,circleNode)
+			}
+		})
 	}
 
 	// 移动

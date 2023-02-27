@@ -589,8 +589,10 @@
 	  this.updateColor = function (status) {
 	    var currentColor = self.snapNode.attr('stroke');
 	    if (!status) {
-	      self.snapNode.attr('stroke', 'red');
+	      self.snapNode.attr('class', 'error');
+	      self.snapNode.attr('stroke', '#fc607a');
 	    } else {
+	      self.snapNode.attr('class', '');
 	      self.snapNode.attr('stroke', vTopo.vTopoOpt.components.line.strokeColor);
 	    }
 	  };
@@ -974,6 +976,18 @@
 	      circleNode.__setStatusImg(parentStatus);
 	    }
 	  };
+	  this.activeAllLineByRoot = function (circleNode, orignNode) {
+	    circleNode.relationLinkNodeIdArray.forEach(function (tmp) {
+	      var __line = findNode(tmp);
+	      if (__line.startNode.id == circleNode.id && __line.endNode.id != orignNode.id) {
+	        var nextNode = __line.endNode;
+	        nextNode.status = circleNode.status;
+	        nextNode.__setStatusImg(circleNode.status);
+	        __line.updateColor(circleNode.status);
+	        _this.activeAllLineByRoot(nextNode, circleNode);
+	      }
+	    });
+	  };
 
 	  // 移动
 	  this.handleMove = function (key) {
@@ -1115,7 +1129,7 @@
 	var defs = {
 	  init: function init(vTopo) {
 	    var el_defs = vTopo.jqSvgEl.find("defs");
-	    el_defs.html("<marker id=\"endArrow\" viewBox=\"0 0 20 20\" refX=\"11\" refY=\"10\" markerWidth=\"5\" markerHeight=\"5\" orient=\"auto\">\n\t\t\t<path d=\"M 1 5 L 11 10 L 1 15 Z\" style=\"fill: #6b9ae6; stroke-width: 1px;\n\t\t\tstroke-linecap: round; stroke-dasharray: 10000, 1; stroke: #6b9ae6;\"></path></marker>\n\t\t\t<marker id=\"startArrow\" viewBox=\"0 0 20 20\" refX=\"11\" refY=\"10\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto\">\n\t\t\t<path d=\"M 22 5 L 12 10 L 22 15 Z\" style=\"fill: #6b9ae6; stroke-width: 1px;\n\t\t\tstroke-linecap: round; stroke-dasharray: 10000, 1; stroke: #6b9ae6;\"></path></marker>");
+	    el_defs.html("\n\t\t\t<marker id=\"endArrow\" viewBox=\"0 0 20 20\" refX=\"11\" refY=\"10\" markerWidth=\"5\" markerHeight=\"5\" orient=\"auto\">\n\t\t\t<path d=\"M 1 5 L 11 10 L 1 15 Z\" style=\"fill: #6b9ae6; stroke-width: 1px;\n\t\t\tstroke-linecap: round; stroke-dasharray: 10000, 1; stroke: #6b9ae6;\"></path></marker>\n\t\t\t<marker id=\"startArrow\" viewBox=\"0 0 20 20\" refX=\"11\" refY=\"10\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto\">\n\t\t\t<path d=\"M 22 5 L 12 10 L 22 15 Z\" style=\"fill: #6b9ae6; stroke-width: 1px;\n\t\t\tstroke-linecap: round; stroke-dasharray: 10000, 1; stroke: #6b9ae6;\"></path></marker>\n\t\t\t<filter id=\"glow\">\n\t\t\t\t<feGaussianBlur stdDeviation=\"4\" result=\"coloredBlur\"/>\n\t\t\t\t<feMerge>\n\t\t\t\t\t<feMergeNode in=\"coloredBlur\"/>\n\t\t\t\t\t<feMergeNode in=\"SourceGraphic\"/>\n\t\t\t\t</feMerge>\n\t\t\t</filter>");
 	  }
 	};
 

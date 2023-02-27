@@ -304,8 +304,10 @@ function LineNode(vTopo ,opt){
 	this.updateColor = (status)=>{
 		let currentColor = self.snapNode.attr('stroke')
 		if (!status){
-			self.snapNode.attr('stroke' ,'red')
+			self.snapNode.attr('class' ,'error')
+			self.snapNode.attr('stroke' ,'#fc607a')
 		}else{
+			self.snapNode.attr('class' ,'')
 			self.snapNode.attr('stroke' ,vTopo.vTopoOpt.components.line.strokeColor)
 		}
 		

@@ -25,6 +25,16 @@
 		.head li{cursor:pointer;margin-right:20px;}
 		.content{position: relative; flex:1;}
 		.content svg{width:100%;height:100%;background:url('img/grid.png');}
+
+		path.error {
+            animation: blink 1.5s linear infinite;
+        }
+
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
 	</style>
 <body>
 	<div class="test">

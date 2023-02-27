@@ -103,7 +103,7 @@
 	})
 
 	document.getElementById('vrNode').addEventListener('click' ,()=>{
-		vTopo.createCircleNode({img:"vr.png" ,r:12 ,status : true ,category:'vr'})
+		vTopo.createCircleNode({img:"vr.png" ,r:r ,status : true ,category:'vr'})
 	})
 
 	document.getElementById('node').addEventListener('click' ,()=>{
@@ -135,6 +135,7 @@
 
 		fileReader.onload = ()=>{
 			vTopo.loadData(JSON.parse(fileReader.result))
+			file.value = ''
 		}
 	})
 
