@@ -4,8 +4,8 @@ import CircleNode from './components/circle'
 import LineNode from './components/line'
 import {eventInit ,zoomEventInit} from './events/index'
 import defs from './core/defs'
-import {nodeList ,findNode ,clearAllNode} from './core/nodePool'
-import {getElPosition ,setElTransform} from './utils/index'
+import {nodeList ,findNode ,clearAllNode ,findByCategory} from './core/nodePool'
+import {getElPosition ,isEmpty,setElTransform} from './utils/index'
 import A from './style/app.less'
 
 function VTopo(opt){
@@ -72,6 +72,8 @@ function VTopo(opt){
 	this.zoomScale = 1
 	this.ctrlDown = false
 
+	this.currentHash
+
 	clearAllNode()
 
 	this.createBaseNode = function (){
@@ -96,7 +98,8 @@ function VTopo(opt){
 	}
 
 	this.findRootNode = ()=>{
-		
+		let nodeList = findByCategory('root')
+		return nodeList[0]
 	}
 
 	this.findParentNode = (node)=>{
@@ -169,6 +172,15 @@ function VTopo(opt){
 		})
 	}
 
+	this.init = ()=>{
+		this.currentHash =  window.location.hash.substring(1)
+		if (isEmpty(this.currentHash)){
+			window.location.hash = 'ng'
+			return false
+		}
+		self.reload()
+	}
+
 	// 加载数据
 	this.loadData = function (jsonData){
 		this.clear()
@@ -186,7 +198,12 @@ function VTopo(opt){
 			new LineNode(self ,tmp)
 		})
 		setElTransform(this.jqVTopoBaseNode ,__data.transform)
+		this.masterSlaveMapping = __data.masterSlaveMapping || {}
 		//this.alignLayout()
+		if (this.mode == 'view'){
+			let rootNode = this.findRootNode()
+			rootNode.activeAllLine(rootNode,rootNode)
+		}
 	}
 
 	// 保存数据
@@ -198,8 +215,37 @@ function VTopo(opt){
 			saveData.nodeList.push(node.saveData())
 		})
 		saveData.transform = getElPosition(this.jqVTopoBaseNode)
-		console.log(saveData)
+		saveData.masterSlaveMapping = this.masterSlaveMapping
 		return JSON.stringify(saveData)
+	}
+
+	this.reload = ()=>{
+
+		let storageData = window.localStorage['vTopo_' + self.currentHash]
+		if (!isEmpty(storageData)){
+			self.loadData(JSON.parse(storageData))
+			return false
+		}
+
+		let promise = fetch(self.currentHash + '.json').then(function(response) {
+			if(response.status === 200){
+				return response.json();
+			}else{
+				return {}
+			}
+		})
+		
+		promise = promise.then(function(data){
+			window.localStorage['vTopo_' + self.currentHash] = JSON.stringify(data)
+			self.loadData(data)
+		}).catch(function(err){
+			console.log(err);
+		})
+	}
+
+	this.save = ()=>{
+		var __data = this.saveData()
+		window.localStorage['vTopo_' + self.currentHash] = __data
 	}
 
 	this.initTextSplit = function (){

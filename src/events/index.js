@@ -1,4 +1,5 @@
 import {getElPosition ,setElTransform} from '../utils/index'
+import {dialogSelect} from '../utils/dialog'
 
 export function eventInit(vTopo)
 {
@@ -50,16 +51,25 @@ export function eventInit(vTopo)
     })
 
     document.addEventListener('keydown' ,(e)=>{
+        
         if (e.key == 'Control'){
             vTopo.ctrlDown = true
         }else if (e.key == 'ArrowLeft' || e.key == 'ArrowRight'
                     || e.key == 'ArrowUp' || e.key == 'ArrowDown'){
             vTopo.handleMove(e.key)
+        }else if (e.code == 'KeyF' && e.ctrlKey){
+            e.preventDefault()
+            dialogSelect({})
         }
     })
 
     document.addEventListener('keyup' ,()=>{
         vTopo.ctrlDown = false
+    })
+
+    window.addEventListener('hashchange' ,()=>{
+        vTopo.currentHash = window.location.hash.substring(1)
+        vTopo.reload()
     })
 }
 

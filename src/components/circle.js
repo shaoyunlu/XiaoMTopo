@@ -4,6 +4,7 @@ import TextNode from './text'
 import {removeNode ,findNode} from '../core/nodePool'
 import {rightClickInit} from '../events/click'
 import {getElPosition ,splitText ,isEmpty} from '../utils/index'
+import {dialogSelect} from '../utils/dialog'
 
 /** 
 	opt : id
@@ -213,7 +214,6 @@ function CircleNode(vTopo ,opt){
 
 	// 左键点击事件
 	this.jqBaseNodeEl.click((e)=>{
-
 		if (vTopo.mode == 'view'){
 			if (self.category == 'contact'){
 				this.handleContactClick()
@@ -222,28 +222,39 @@ function CircleNode(vTopo ,opt){
 			
 			let parentNodeArray = vTopo.findAllParentNodes(self)
 			if (isEmpty(parentNodeArray)){
+				// 根节点
 				self.toggleStatus()
+				self.activeAllLineByRoot(self ,self)
 			}
 			else
 			{
-				if (!vTopo.getParentStatus(parentNodeArray))
-				{
-					self.status = false
-					this.__setStatusImg(false)
-				}
-				else
-				{
-					if (self.isLinkNode)
-						self.status = true
+				if (self.category == "route" && !vTopo.masterSlaveMapping[self.id]){
+					self.toggleStatus()
+					self.activeAllLineByRoot(self ,self)
+				}else{
+					if (!vTopo.getParentStatus(parentNodeArray))
+					{
+						self.status = false
+						this.__setStatusImg(false)
+					}
 					else
-						self.toggleStatus()
+					{
+						if (self.isLinkNode)
+							self.status = true
+						else
+							self.toggleStatus()
+					}
 				}
+				
 			}
 			self.activeAllLine(self ,self)
 			if (vTopo.masterSlaveMapping[self.id]){
 				let slave = vTopo.masterSlaveMapping[self.id]
 				self.activeAllLine(slave ,slave)
 			}
+
+			vTopo.save()
+
 		}else{
 			// 如果是单点
 			if (!vTopo.ctrlDown){
@@ -291,6 +302,8 @@ function CircleNode(vTopo ,opt){
 
 		self.activeAllLine(parentNode1 ,parentNode1)
 		self.activeAllLine(parentNode2 ,parentNode2)
+
+		vTopo.save()
 		
 	}
 

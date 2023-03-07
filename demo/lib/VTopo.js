@@ -22,6 +22,11 @@
 	    return tmp.id == id;
 	  });
 	}
+	function findByCategory(category) {
+	  return _.filter(nodePool, function (tmp) {
+	    return tmp.category == category;
+	  });
+	}
 	function nodeList() {
 	  return nodePool;
 	}
@@ -200,7 +205,7 @@
 	    e.stopPropagation();
 	  });
 	}
-	var nodeContextMenuStr = "<div class=\"vtopo-context-menu\">\n\t\t\t\t\t\t<ul>\n\t\t\t\t\t\t\t<li data-oper=\"drawLine\">\u7ED8\u5236\u8FDE\u7EBF</li>\n\t\t\t\t\t\t\t<li data-oper=\"setImage\">\u8BBE\u7F6E\u56FE\u7247</li>\n\t\t\t\t\t\t\t<li data-oper=\"drawNodeText\">\u6DFB\u52A0\u6587\u5B57</li>\n\t\t\t\t\t\t\t<li data-oper=\"deleteNode\">\u5220\u9664\u5143\u7D20</li>\n\t\t\t\t\t\t</ul>\n\t\t\t\t\t</div>";
+	var nodeContextMenuStr = "<div class=\"vtopo-context-menu\">\n\t\t\t\t\t\t<ul>\n\t\t\t\t\t\t\t<li data-oper=\"drawLine\">\u7ED8\u5236\u8FDE\u7EBF</li>\n\t\t\t\t\t\t\t<li data-oper=\"drawNodeText\">\u6DFB\u52A0\u6587\u5B57</li>\n\t\t\t\t\t\t\t<li data-oper=\"deleteNode\">\u5220\u9664\u5143\u7D20</li>\n\t\t\t\t\t\t</ul>\n\t\t\t\t\t</div>";
 	var lineContextMenuStr = "<div class=\"vtopo-context-menu\">\n\t\t\t\t\t\t<ul>\n\t\t\t\t\t\t\t<li data-oper=\"addTextInLine\">\u6DFB\u52A0\u6587\u5B57</li>\n\t\t\t\t\t\t\t<li data-oper=\"deleteLine\">\u5220\u9664\u8FDE\u7EBF</li>\n\t\t\t\t\t\t</ul>\n\t\t\t\t\t</div>";
 	var inflexNodeContextMenuStr = "<div class=\"vtopo-context-menu\">\n\t\t\t\t\t\t<ul>\n\t\t\t\t\t\t\t<li data-oper=\"deleteInflexNode\">\u5220\u9664\u5143\u7D20</li>\n\t\t\t\t\t\t</ul>\n\t\t\t\t\t</div>";
 	function __contentMenuShow(node, vTopo, e, opt, target_el) {
@@ -890,13 +895,20 @@
 	      }
 	      var parentNodeArray = vTopo.findAllParentNodes(self);
 	      if (isEmpty(parentNodeArray)) {
+	        // 根节点
 	        self.toggleStatus();
+	        self.activeAllLineByRoot(self, self);
 	      } else {
-	        if (!vTopo.getParentStatus(parentNodeArray)) {
-	          self.status = false;
-	          _this.__setStatusImg(false);
+	        if (self.category == "route" && !vTopo.masterSlaveMapping[self.id]) {
+	          self.toggleStatus();
+	          self.activeAllLineByRoot(self, self);
 	        } else {
-	          if (self.isLinkNode) self.status = true;else self.toggleStatus();
+	          if (!vTopo.getParentStatus(parentNodeArray)) {
+	            self.status = false;
+	            _this.__setStatusImg(false);
+	          } else {
+	            if (self.isLinkNode) self.status = true;else self.toggleStatus();
+	          }
 	        }
 	      }
 	      self.activeAllLine(self, self);
@@ -904,6 +916,7 @@
 	        var slave = vTopo.masterSlaveMapping[self.id];
 	        self.activeAllLine(slave, slave);
 	      }
+	      vTopo.save();
 	    } else {
 	      // 如果是单点
 	      if (!vTopo.ctrlDown) {
@@ -944,6 +957,7 @@
 	    }
 	    self.activeAllLine(parentNode1, parentNode1);
 	    self.activeAllLine(parentNode2, parentNode2);
+	    vTopo.save();
 	  };
 
 	  // 点击元件，关联的线都要跟着变化，避免回路
@@ -1103,6 +1117,10 @@
 	  document.addEventListener('keyup', function () {
 	    vTopo.ctrlDown = false;
 	  });
+	  window.addEventListener('hashchange', function () {
+	    vTopo.currentHash = window.location.hash.substring(1);
+	    vTopo.reload();
+	  });
 	}
 	function zoomEventInit(vTopo) {
 	  var __windowSizeChange = _.debounce(function () {
@@ -1222,6 +1240,7 @@
 	  this.jqGuideLineY;
 	  this.zoomScale = 1;
 	  this.ctrlDown = false;
+	  this.currentHash;
 	  clearAllNode();
 	  this.createBaseNode = function () {
 	  };
@@ -1242,7 +1261,10 @@
 	  this.findNode = function (nodeId) {
 	    return findNode(nodeId);
 	  };
-	  this.findRootNode = function () {};
+	  this.findRootNode = function () {
+	    var nodeList = findByCategory('root');
+	    return nodeList[0];
+	  };
 	  this.findParentNode = function (node) {
 	    var parentNode;
 	    node.relationLinkNodeIdArray.forEach(function (tmp) {
@@ -1310,6 +1332,14 @@
 	      });
 	    });
 	  };
+	  this.init = function () {
+	    _this.currentHash = window.location.hash.substring(1);
+	    if (isEmpty(_this.currentHash)) {
+	      window.location.hash = 'ng';
+	      return false;
+	    }
+	    self.reload();
+	  };
 
 	  // 加载数据
 	  this.loadData = function (jsonData) {
@@ -1335,7 +1365,12 @@
 	      new LineNode(self, tmp);
 	    });
 	    setElTransform(this.jqVTopoBaseNode, __data.transform);
+	    this.masterSlaveMapping = __data.masterSlaveMapping || {};
 	    //this.alignLayout()
+	    if (this.mode == 'view') {
+	      var rootNode = this.findRootNode();
+	      rootNode.activeAllLine(rootNode, rootNode);
+	    }
 	  };
 
 	  // 保存数据
@@ -1347,8 +1382,32 @@
 	      saveData.nodeList.push(node.saveData());
 	    });
 	    saveData.transform = getElPosition(this.jqVTopoBaseNode);
-	    console.log(saveData);
+	    saveData.masterSlaveMapping = this.masterSlaveMapping;
 	    return JSON.stringify(saveData);
+	  };
+	  this.reload = function () {
+	    var storageData = window.localStorage['vTopo_' + self.currentHash];
+	    if (!isEmpty(storageData)) {
+	      self.loadData(JSON.parse(storageData));
+	      return false;
+	    }
+	    var promise = fetch(self.currentHash + '.json').then(function (response) {
+	      if (response.status === 200) {
+	        return response.json();
+	      } else {
+	        return {};
+	      }
+	    });
+	    promise = promise.then(function (data) {
+	      window.localStorage['vTopo_' + self.currentHash] = JSON.stringify(data);
+	      self.loadData(data);
+	    })["catch"](function (err) {
+	      console.log(err);
+	    });
+	  };
+	  this.save = function () {
+	    var __data = _this.saveData();
+	    window.localStorage['vTopo_' + self.currentHash] = __data;
 	  };
 	  this.initTextSplit = function () {
 	    this.jqTextSplit = $('<div class="vTopo-text-split"></div>').appendTo(this.jqWrapperEl);

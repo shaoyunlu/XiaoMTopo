@@ -41,6 +41,12 @@ export function findNode(id){
 	})
 }
 
+export function findByCategory(category){
+	return _.filter(nodePool ,(tmp)=>{
+		return tmp.category == category
+	})
+}
+
 export function nodeList(){
 	return nodePool
 }

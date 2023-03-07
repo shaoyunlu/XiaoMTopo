@@ -35,6 +35,7 @@
 	
 	<div class="head">
 		<ul id="toolsUl">
+			<li id="rootNode">变电所</li>
 			<li id="routeNode">线路</li>
 			<li id="powerNode">电站</li>
 			<li id="roomNode">房间</li>
@@ -77,10 +78,13 @@
 
 	const r = 20
 
+	document.getElementById('rootNode').addEventListener('click' ,()=>{
+		vTopo.createCircleNode({img:"root.png" ,r:r ,status : true ,category:'root'})
+	})
+
 	document.getElementById('routeNode').addEventListener('click' ,()=>{
 		vTopo.createCircleNode({img:"route.png" ,r:r ,status : true ,category:'route'})
 	})
-
 
 	document.getElementById('powerNode').addEventListener('click' ,()=>{
 		vTopo.createCircleNode({img:"power.png" ,r:r ,status : true ,category:'power'})
@@ -145,7 +149,7 @@
 		var url = URL.createObjectURL(blob);
 		var a = document.createElement("a");
 		a.href = url;
-		a.download = "example.txt";
+		a.download = "变电所.txt";
 		// 将a标签添加到文档中
 		document.body.appendChild(a);
 		a.click();
@@ -154,15 +158,19 @@
 	})
 
 	document.getElementById('save').addEventListener('click' ,()=>{
-		var __data = vTopo.saveData()
-		localStorage.vTopo_saveData = __data
+		vTopo.save()
 	})
 
 	document.getElementById('clear').addEventListener('click' ,()=>{
 		vTopo.clear()
 	})
 
-	vTopo.loadData(JSON.parse(localStorage.vTopo_saveData))
+	vTopo.init()
+
+
+
+
+	
 
 </script>
 </html>

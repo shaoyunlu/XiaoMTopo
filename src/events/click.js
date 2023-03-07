@@ -23,7 +23,6 @@ export function rightClickInit(node ,vTopo ,opt)
 var nodeContextMenuStr = `<div class="vtopo-context-menu">
 						<ul>
 							<li data-oper="drawLine">绘制连线</li>
-							<li data-oper="setImage">设置图片</li>
 							<li data-oper="drawNodeText">添加文字</li>
 							<li data-oper="deleteNode">删除元素</li>
 						</ul>
