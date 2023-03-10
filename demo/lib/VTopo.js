@@ -190,6 +190,40 @@
 	    dialogEl.remove();
 	  });
 	}
+	function dialogSelect(opt, vTopo) {
+	  $(".vTopo-dialog-select").remove();
+	  var listStr = "<li data-val='ng'><div>\u5357\u5DE5\u53D8\u7535\u6240</div><span>\u5C55\u793A</span><p>\u7F16\u8F91</p></li>\n\t\t\t\t\t<li data-val='db'><div>\u4E1C\u5E2E\u53D8\u7535\u6240</div><span>\u5C55\u793A</span><p>\u7F16\u8F91</p></li>\n\t\t\t\t\t<li data-val='zn'><div>\u73E0\u5357\u53D8\u7535\u6240</div><span>\u5C55\u793A</span><p>\u7F16\u8F91</p></li>\n\t\t\t\t   ";
+	  var dialogEl = $("<div class=\"vTopo-dialog vTopo-dialog-select\">\n\t\t\t\t\t\t<ul>".concat(listStr, "</ul>\n\t\t\t\t\t  </div>"));
+	  $('body').append(dialogEl);
+	  // 禁止事件穿透
+	  dialogEl[0].addEventListener('mousemove', function (e) {
+	    e.stopPropagation();
+	  });
+	  var dialogElWidth = dialogEl.width();
+	  var dialogElHeight = dialogEl.height();
+	  //dialogEl.css({"left":'50%' ,"top":'50%' ,'transform':`scale(0) translate(-${dialogElWidth}px,-${dialogElHeight}px)`})
+	  dialogEl.css({
+	    "left": "calc(50% - ".concat(dialogElWidth / 2, "px)"),
+	    "top": "calc(50% - ".concat(dialogElWidth / 2, "px)"),
+	    'transform': "scale(0)"
+	  });
+	  //dialogEl.css('trasform' ,`translate(${dialogElWidth}px,${dialogElHeight}px)`)
+	  dialogEl.find('span').click(function () {
+	    var dataVal = $(this).parent().attr('data-val');
+	    window.location.href = '/show.html#' + dataVal;
+	    dialogEl.remove();
+	  });
+	  dialogEl.find('p').click(function () {
+	    var dataVal = $(this).parent().attr('data-val');
+	    window.location.href = '/edit.html#' + dataVal;
+	    dialogEl.remove();
+	  });
+	  requestAnimationFrame(function () {
+	    dialogEl.css({
+	      'transform': "scale(1)"
+	    });
+	  });
+	}
 
 	function rightClickInit(node, vTopo, opt) {
 	  if (vTopo.mode == "view") return false;
@@ -213,11 +247,21 @@
 	  var pos = getElPosition(target_el);
 	  var __el;
 	  if (node.type == "circle") __el = $(nodeContextMenuStr);else if (node.type == "line") __el = $(lineContextMenuStr);else if (node.type == "inflexPoint") __el = $(inflexNodeContextMenuStr);
-	  var eventOffSetX = getEventOffSetX(e, vTopo) + vTopo.jqWrapperElOffset.left;
-	  var eventOffSetY = getEventOffSetY(e, vTopo);
-	  __el.css("left", eventOffSetX + 'px');
-	  __el.css("top", eventOffSetY + 'px');
+
+	  //let eventOffSetX = getEventOffSetX(e ,vTopo)
+	  //let eventOffSetY = getEventOffSetY(e ,vTopo)
+
 	  vTopo.jqWrapperEl.append(__el);
+	  var windowWidth = window.innerWidth; // 获取窗口宽度
+	  var windowHeight = window.innerHeight; // 获取窗口高度
+	  var __elWidth = __el.width();
+	  var __elHeight = __el.height();
+	  var distance_x = windowWidth - e.clientX;
+	  var distance_y = windowHeight - e.clientY;
+	  var eClientX = e.clientX - (distance_x < __elWidth ? __elWidth - distance_x : 0);
+	  var eClientY = e.clientY - (distance_y < __elHeight ? __elHeight - distance_y : 0);
+	  __el.css("left", eClientX + 'px');
+	  __el.css("top", eClientY + 'px');
 	  __el.bind('click', function (e) {
 	    e.preventDefault();
 	    return false;
@@ -227,8 +271,8 @@
 	    var __oper = $(this).attr("data-oper");
 	    if (__oper == "deleteNode") node.remove();else if (__oper == "drawNodeText") dialogInput({
 	      pos: {
-	        left: eventOffSetX + 15 + 'px',
-	        "top": eventOffSetY + 15 + 'px'
+	        left: eClientX + 15 + 'px',
+	        "top": eClientY + 15 + 'px'
 	      },
 	      enterCbf: function enterCbf(textArray) {
 	        opt.createTextNode({
@@ -239,8 +283,8 @@
 	      }
 	    }, vTopo);else if (__oper == "setImage") dialogInput({
 	      pos: {
-	        left: eventOffSetX + 15 + 'px',
-	        "top": eventOffSetY + 15 + 'px'
+	        left: eClientX + 15 + 'px',
+	        "top": eClientY + 15 + 'px'
 	      },
 	      enterCbf: function enterCbf(textArray) {
 	        node.setImg(textArray[0].text + '.png');
@@ -1112,6 +1156,9 @@
 	      vTopo.ctrlDown = true;
 	    } else if (e.key == 'ArrowLeft' || e.key == 'ArrowRight' || e.key == 'ArrowUp' || e.key == 'ArrowDown') {
 	      vTopo.handleMove(e.key);
+	    } else if (e.code == 'KeyF' && e.ctrlKey) {
+	      e.preventDefault();
+	      dialogSelect();
 	    }
 	  });
 	  document.addEventListener('keyup', function () {
@@ -1178,7 +1225,7 @@
 	  }
 	}
 
-	var css_248z = ".vTopo tspan {\n  font-size: 12px;\n  -moz-user-select: none;\n  -webkit-user-select: none;\n  user-select: none;\n}\n.vtopo-context-menu {\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 150px;\n  background-color: rgba(0, 0, 0, 0.75);\n  color: #fff;\n}\n.vtopo-context-menu ul li {\n  cursor: pointer;\n  text-align: center;\n  padding: 10px 5px;\n}\n.vTopo-dialog {\n  position: absolute;\n  left: 50%;\n  top: 50%;\n  padding: 10px;\n  border: 1px solid #aaa;\n  font-size: 12px;\n  color: #fff;\n}\n.vTopo-dialog input {\n  outline: 0;\n  padding: 1px 8px;\n  width: 150px;\n}\n.vTopo-guideline-x {\n  position: absolute;\n  width: 100%;\n  height: 1px;\n  background-color: #3d88e0;\n}\n.vTopo-guideline-y {\n  position: absolute;\n  top: 0;\n  left: -9999px;\n  width: 1px;\n  height: 100%;\n  background-color: #3d88e0;\n}\n.vTopo-text-split {\n  font-size: 12px;\n}\n.vTopo-breath-light {\n  opacity: 0.3;\n  animation-name: breath;\n  /* 动画名称 */\n  animation-duration: 3s;\n  /* 动画时长3秒 */\n  animation-timing-function: ease-in-out;\n  /* 动画速度曲线：以低速开始和结束 */\n  animation-iteration-count: infinite;\n  /* 播放次数：无限 */\n  /* Safari and Chrome */\n  -webkit-animation-name: breath;\n  /* 动画名称 */\n  -webkit-animation-duration: 3s;\n  /* 动画时长3秒 */\n  -webkit-animation-timing-function: ease-in-out;\n  /* 动画速度曲线：以低速开始和结束 */\n  -webkit-animation-iteration-count: infinite;\n  /* 播放次数：无限 */\n}\n@keyframes breath {\n  from {\n    opacity: 0.3;\n  }\n  /* 动画开始时的不透明度 */\n  50% {\n    opacity: 1;\n  }\n  /* 动画50% 时的不透明度 */\n  to {\n    opacity: 0.3;\n  }\n  /* 动画结束时的不透明度 */\n}\n@-webkit-keyframes breath {\n  from {\n    opacity: 0.3;\n  }\n  /* 动画开始时的不透明度 */\n  50% {\n    opacity: 1;\n  }\n  /* 动画50% 时的不透明度 */\n  to {\n    opacity: 0.3;\n  }\n  /* 动画结束时的不透明度 */\n}\n";
+	var css_248z = ".vTopo tspan {\n  font-size: 12px;\n  -moz-user-select: none;\n  -webkit-user-select: none;\n  user-select: none;\n}\n.vtopo-context-menu {\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 150px;\n  background-color: rgba(0, 0, 0, 0.75);\n  color: #fff;\n}\n.vtopo-context-menu ul li {\n  cursor: pointer;\n  text-align: center;\n  padding: 10px 5px;\n}\n.vtopo-context-menu ul li:hover {\n  color: brown;\n}\n.vTopo-dialog {\n  position: absolute;\n  left: 50%;\n  top: 50%;\n  padding: 10px;\n  border: 1px solid #aaa;\n  font-size: 12px;\n  color: #fff;\n  background-color: rgba(0, 0, 0, 0.75);\n}\n.vTopo-dialog input {\n  outline: 0;\n  padding: 1px 8px;\n  width: 150px;\n}\n.vTopo-dialog-select {\n  background-color: rgba(0, 0, 0, 0.9);\n  transition: transform 0.3s;\n  transform: scale(0);\n  transform-origin: center;\n}\n.vTopo-dialog-select li {\n  display: flex;\n  transition: all 0.3s;\n  padding: 20px 30px;\n  user-select: none;\n  font-size: 20px;\n}\n.vTopo-dialog-select li:hover {\n  background-color: rgba(50, 50, 50, 0.3);\n}\n.vTopo-dialog-select li div {\n  padding-right: 60px;\n}\n.vTopo-dialog-select li span {\n  transition: inherit;\n  margin-right: 30px;\n}\n.vTopo-dialog-select li span:hover {\n  cursor: pointer;\n  color: #3d88e0;\n}\n.vTopo-dialog-select li p {\n  transition: inherit;\n  margin: 0;\n}\n.vTopo-dialog-select li p:hover {\n  cursor: pointer;\n  color: #3d88e0;\n}\n.vTopo-guideline-x {\n  position: absolute;\n  width: 100%;\n  height: 1px;\n  background-color: #3d88e0;\n}\n.vTopo-guideline-y {\n  position: absolute;\n  top: 0;\n  left: -9999px;\n  width: 1px;\n  height: 100%;\n  background-color: #3d88e0;\n}\n.vTopo-text-split {\n  font-size: 12px;\n}\n.vTopo-breath-light {\n  opacity: 0.3;\n  animation-name: breath;\n  /* 动画名称 */\n  animation-duration: 3s;\n  /* 动画时长3秒 */\n  animation-timing-function: ease-in-out;\n  /* 动画速度曲线：以低速开始和结束 */\n  animation-iteration-count: infinite;\n  /* 播放次数：无限 */\n  /* Safari and Chrome */\n  -webkit-animation-name: breath;\n  /* 动画名称 */\n  -webkit-animation-duration: 3s;\n  /* 动画时长3秒 */\n  -webkit-animation-timing-function: ease-in-out;\n  /* 动画速度曲线：以低速开始和结束 */\n  -webkit-animation-iteration-count: infinite;\n  /* 播放次数：无限 */\n}\n@keyframes breath {\n  from {\n    opacity: 0.3;\n  }\n  /* 动画开始时的不透明度 */\n  50% {\n    opacity: 1;\n  }\n  /* 动画50% 时的不透明度 */\n  to {\n    opacity: 0.3;\n  }\n  /* 动画结束时的不透明度 */\n}\n@-webkit-keyframes breath {\n  from {\n    opacity: 0.3;\n  }\n  /* 动画开始时的不透明度 */\n  50% {\n    opacity: 1;\n  }\n  /* 动画50% 时的不透明度 */\n  to {\n    opacity: 0.3;\n  }\n  /* 动画结束时的不透明度 */\n}\n";
 	styleInject(css_248z);
 
 	function VTopo(opt) {

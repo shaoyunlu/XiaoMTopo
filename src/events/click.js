@@ -52,12 +52,30 @@ function __contentMenuShow(node ,vTopo ,e ,opt ,target_el)
 	else if(node.type == "inflexPoint")
 		__el = $(inflexNodeContextMenuStr)
 
-	let eventOffSetX = getEventOffSetX(e ,vTopo) + vTopo.jqWrapperElOffset.left
-	let eventOffSetY = getEventOffSetY(e ,vTopo)
+	//let eventOffSetX = getEventOffSetX(e ,vTopo)
+	//let eventOffSetY = getEventOffSetY(e ,vTopo)
 
-	__el.css("left" ,eventOffSetX + 'px')
-	__el.css("top" ,eventOffSetY + 'px')
 	vTopo.jqWrapperEl.append(__el)
+
+
+	let windowWidth = window.innerWidth; // 获取窗口宽度
+	let windowHeight = window.innerHeight; // 获取窗口高度
+	let __elWidth = __el.width()
+	let __elHeight = __el.height()
+
+	let distance_x = windowWidth - e.clientX
+	let distance_y = windowHeight - e.clientY
+
+	let eClientX = e.clientX - (distance_x < __elWidth ? (__elWidth - distance_x) : 0)
+	let eClientY = e.clientY - (distance_y < __elHeight ? (__elHeight - distance_y) : 0)
+
+	__el.css("left" ,eClientX + 'px')
+	__el.css("top" ,eClientY + 'px')
+
+	
+
+	
+
 	__el.bind('click' ,function (e){
 		e.preventDefault();
 	    return false;
@@ -69,14 +87,14 @@ function __contentMenuShow(node ,vTopo ,e ,opt ,target_el)
 			node.remove()
 		else if ( __oper == "drawNodeText")
 			dialogInput({
-				pos : {left : eventOffSetX + 15 + 'px' ,"top" : eventOffSetY + 15 + 'px'},
+				pos : {left : eClientX + 15 + 'px' ,"top" : eClientY + 15 + 'px'},
 				enterCbf : function (textArray){
 					opt.createTextNode({parentNode:node ,vTopo:vTopo ,textArray:textArray})
 				}
 			} ,vTopo)
 		else if ( __oper == "setImage")
 			dialogInput({
-				pos : {left : eventOffSetX + 15 + 'px' ,"top" : eventOffSetY + 15 + 'px'},
+				pos : {left : eClientX + 15 + 'px' ,"top" : eClientY + 15 + 'px'},
 				enterCbf : function (textArray){
 					node.setImg(textArray[0].text + '.png')
 				}

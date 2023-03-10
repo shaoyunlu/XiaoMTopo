@@ -40,8 +40,8 @@ const processLess = function(context, payload) {
 export default {
   input: './src/main.js',
   output: {
-    file: '../../../../job/topo/lib/VTopo.js',
-    //file: './demo/lib/VTopo.js',
+    //file: '../../../../job/topo/lib/VTopo.js',
+    file: './demo/lib/VTopo.js',
     format: 'umd',
     name: 'VTopo'
   },
