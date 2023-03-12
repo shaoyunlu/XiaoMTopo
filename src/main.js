@@ -13,7 +13,7 @@ function VTopo(opt){
 
 	this.uuid = new Date().getTime()
 
-	// 只记录circle节点
+	// 只记录circle节点1
 	this.nodeArray = []
 
 	// 当前选中node
