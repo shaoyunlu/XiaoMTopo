@@ -17,6 +17,14 @@
 		body{
 			background:url('img/bg.jpg')
 		}
+		.title{
+			position: fixed;
+			top: 15px;
+			left: 700px;
+			color: #fff;
+			font-size: 50px;
+			font-weight: 800;
+		}
 		ul{margin:0;padding:0;}
 		li{list-style:none}
 		.test{width:100%;height:100%;display:flex;flex-direction: column;}
@@ -24,7 +32,7 @@
 		.head ul{display:flex;}
 		.head li{cursor:pointer;margin-right:20px;}
 		.content{position: relative; flex:1;}
-		.content svg{width:100%;height:100%;background:url('img/grid.png');}
+		.content svg{width:100%;height:100%;}
 
 		path.error {
             animation: blink 1.5s linear infinite;
@@ -37,6 +45,9 @@
         }
 	</style>
 <body>
+	<div class="title">
+		南露天煤矿供配电系统图
+	</div>
 	<div class="test">
 		<div style="display:flex;flex-direction:row" class="content">
 			<div style="width:1px"></div>

@@ -43,6 +43,7 @@ function VTopo(opt){
 				xMargin : 10,
 				yMargin : 10,
 				textColor : "#c8e0ff"
+				//textColor : "#000"
 			},
 			inflexPoint :
 			{
