@@ -21,9 +21,27 @@
 			position: fixed;
 			top: 15px;
 			left: 700px;
-			color: #fff;
+			color: #07374e;
 			font-size: 50px;
 			font-weight: 800;
+		}
+		.list{
+			position: fixed;
+			top: 35px;
+			left: 50px;
+			z-index: 9999;
+			font-size: 20px;
+		}
+		.list span{
+			transition: all 0.3s;
+			cursor: pointer;
+			margin-right: 5px;
+			padding: 10px;
+			background-color: rgba(255,255,255,0.4);
+			border-radius: 150px;
+		}
+		.list span:hover{
+			color: rgba(0,0,0,0.3)
 		}
 		ul{margin:0;padding:0;}
 		li{list-style:none}
@@ -47,6 +65,11 @@
 <body>
 	<div class="title">
 		南露天煤矿供配电系统图
+	</div>
+	<div class="list" id="selList">
+		<span data-val="ng">南工变电所</span>
+		<span data-val="db">东帮变电所</span>
+		<span data-val="zn">珠南变电所</span>
 	</div>
 	<div class="test">
 		<div style="display:flex;flex-direction:row" class="content">
@@ -82,6 +105,15 @@
 
 	$("#clear").click(function (){
 		vTopo.clear()
+	})
+
+	document.getElementById('selList').addEventListener('click',(e)=>{
+		let __targetEl = e.target
+		if (__targetEl.tagName == 'SPAN'){
+			let dataVal = __targetEl.getAttribute('data-val')
+			window.location.href = '/show.html#' + dataVal
+		}
+		
 	})
 
 	//vTopo.loadData(JSON.parse(localStorage.vTopo_saveData))

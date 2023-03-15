@@ -35,15 +35,16 @@ function VTopo(opt){
 			},
 			line : 
 			{
-				strokeColor : '#3d88e0',
+				//strokeColor : '#3d88e0',
+				strokeColor : '#34667e',
 				lineWidth : (opt.mode == 'view' ? 2 : 1)
 			},
 			text :
 			{
 				xMargin : 10,
 				yMargin : 10,
-				textColor : "#c8e0ff"
-				//textColor : "#000"
+				//textColor : "#c8e0ff"
+				textColor : "#000"
 			},
 			inflexPoint :
 			{
